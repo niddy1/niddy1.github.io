@@ -17,10 +17,10 @@ body{
 
 }
 a{
-  border-bottom: 2px white solid;
+  border-bottom: 2px black solid;
   padding: 3px;
   text-decoration: none;
-  color: black;
+  color: white;
 }
 a:hover{
   background-color: rgba(255, 248, 248, 0.8);;
@@ -37,6 +37,7 @@ p {
     width: 100%;
     margin: 0 auto;
     text-align: center;
+    color: white;
     /*-webkit-transform: translate(0, -50%);
     -moz-transform: translate(0, -50%);
     -o-transform: translate(0, -50%);
@@ -64,12 +65,14 @@ p {
   color: yellow;
 
 
+
 }
 body{
   border: black 10px solid;
 }
 .top-link{
   color: yellow;
+  border-bottom: 2px solid yellow;
 }
 #block-1{
   background-color: #EBE1C4;
