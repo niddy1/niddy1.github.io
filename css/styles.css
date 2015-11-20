@@ -3,6 +3,21 @@ body{
   font-family: 'Inconsolata';
   font-weight: 700;
 }
+
+.description{
+  background-color:rgba(0, 0, 0, 0.5);
+  display: none;
+  color: white;
+  font-size: 17px;;
+  float: left;
+  z-index: 1;
+  position: fixed;
+  top: 35%;
+  right: 18px;
+  width: 35%;
+  overflow: auto;
+  padding-left: 1%;
+}
 .container{
   text-align: center;
   font-family: 'Inconsolata';
@@ -13,9 +28,6 @@ body{
   margin-left: 21%;
 }
 
-.three:hover{
-
-}
 a{
   border-bottom: 2px black solid;
   padding: 3px;
