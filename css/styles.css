@@ -161,30 +161,40 @@ body{
   background-image: url('images/16.png');
 }
 
-
-@media screen and (max-width: 630px) {
-
-  html, body{
-      height: 100%;
-  }
-  body{
-    border: none;
-  }
   .last-block{
 
     min-height: 150px;
 
   }
   .last-block p{
-    line-height: 33px;
-    margin-top: -9%;
+    /*line-height: 33px;*/
+    margin-top: 1%;
   }
   .blocks{
-    background-size: 60%;
+    background-size: 30%;
     height: 50%;
   }
   .description{
     background-color: black;
+}
+
+@media screen and (max-device-width: 630px) {
+
+  /*html, body{
+      height: 100%;
+  }*/
+  body{
+    /*border: none;*/
+  }
+  .blocks{
+    height: 55%;
+    background-size: 80%;
+  }
+
+  .last-block p{
+    /*line-height: 33px;*/
+    margin-top: -8%;
+  }
 }
 
 /*****************************************************/
