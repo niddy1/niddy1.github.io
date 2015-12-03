@@ -178,7 +178,7 @@ body{
     background-color: black;
 }
 
-@media screen and (max-device-width: 630px) {
+@media screen and (max-width: 600px) {
 
   /*html, body{
       height: 100%;
@@ -187,7 +187,7 @@ body{
     /*border: none;*/
   }
   .blocks{
-    height: 55%;
+    height: 85%;
     background-size: 80%;
   }
 
