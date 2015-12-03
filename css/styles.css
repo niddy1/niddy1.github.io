@@ -172,7 +172,7 @@ body{
   }
   .blocks{
     background-size: 30%;
-    height: 50%;
+    /*height: 50%;*/
   }
   .description{
     background-color: black;
@@ -187,7 +187,7 @@ body{
     /*border: none;*/
   }
   .blocks{
-    height: 85%;
+    min-height: 800px;
     background-size: 80%;
   }
 
