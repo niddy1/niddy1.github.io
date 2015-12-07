@@ -196,7 +196,18 @@ html, body{
 }
 
 @media all and (max-width:900px), (max-device-width:900px){
-
+  .blocks{
+    position: relative;
+    width: 100% + 20;
+    height: 45%;
+    min-height: 350px;
+    background-position: 50% 55%;
+    background-attachment: fixed;
+    background-repeat: no-repeat;
+    background-size: auto 50%;
+    border-left: black 10px solid;
+    border-right: black 10px solid;
+  }
   #block-1{
     background-color: #EBE1C4;
     background-image: url('images/1.png');
