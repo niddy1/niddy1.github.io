@@ -185,9 +185,7 @@ html, body{
 
 @media screen and (max-width: 600px) {
 
-  .blocks{
 
-  }
 
   .last-block p{
     /*line-height: 33px;*/
@@ -195,91 +193,6 @@ html, body{
   }
 }
 
-@media all and (max-width:900px), (max-device-width:900px){
-  .blocks{
-    position: relative;
-    width: 100% + 20;
-    height: 45%;
-    min-height: 350px;
-    background-position: 50% 55%;
-    background-attachment: fixed;
-    background-repeat: no-repeat;
-    background-size: auto 50%;
-    border-left: black 10px solid;
-    border-right: black 10px solid;
-  }
-  #block-1{
-    background-color: #EBE1C4;
-    background-image: url('images/1.png');
-
-  }
-  #block-2{
-    background-color: #667799;
-    background-image: url('images/2.png');
-  }
-  #block-3{
-    background-color: #D8D3DE;
-    background-image: url('images/3.png');
-  }
-  #block-4{
-    background-color: #7a9460;
-    background-image: url('images/4.png');
-  }
-  #block-5{
-    background-color: #dd9977;
-    background-image: url('images/5.png');
-  }
-  #block-6{
-    background-color: #665566;
-    background-image: url('images/6.png');
-  }
-  #block-7{
-    background-color: #223333;
-    background-image: url('images/7.png');
-  }
-  #block-8{
-    background-color: #9EA5AA;
-    background-image: url('images/8.png');
-  }
-  #block-8-5{
-    background-color: #5C4742;
-    background-image: url('images/8.png');
-  }
-
-  #block-9{
-    background-color: #D8D3DE;
-    background-image: url('images/9.png');
-
-  }
-  #block-10{
-    background-color: #7a9460;
-    background-image: url('images/10.png');
-  }
-  #block-11{
-    background-color: #667799;
-    background-image: url('images/11.png');
-  }
-  #block-12{
-    background-color: #B3C5C5;
-    background-image: url('images/12.png');
-  }
-  #block-13{
-    background-color: #EBE1C4;
-    background-image: url('images/13.png');
-  }
-  #block-14{
-    background-color: #667799;
-    background-image: url('images/14.png');
-  }
-  #block-15{
-    background-color: #EBDBD0;
-    background-image: url('images/15.png');
-  }
-  #block-16{
-    background-color: #7a9460;
-    background-image: url('images/16.png');
-  }
-}
 
 /*****************************************************/
 /*
