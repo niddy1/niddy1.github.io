@@ -186,7 +186,7 @@ html, body{
 @media screen and (max-width: 600px) {
 
   .blocks{
-    background-attachment: fixed;
+    background-attachment: scroll;
   }
 
   .last-block p{
