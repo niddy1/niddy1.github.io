@@ -6,6 +6,9 @@ $(document).ready(function (){
         $("html, body").animate({ scrollTop: $('html, body').prop("scrollHeight")}, 6000);
     });
 
+    $('#modal-close').on("click", function(){
+      $('#mobile-modal').toggle();
+    });
 
 
     $('.desc-0').hover(function(e){
@@ -20,8 +23,6 @@ $(document).ready(function (){
             right: "-1500px"
         }, 300);
     });
-
-
 
     $('.desc-1').hover(function(e){
       $('#desc-1').stop().animate({
