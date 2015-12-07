@@ -70,24 +70,16 @@ p {
   background-size: auto 50%;
   border-left: black 10px solid;
   border-right: black 10px solid;
-
-
-
 }
+
 .first-block{
   border-top: black 10px solid;
 }
+
 html, body{
   height: 100%;
-
-
-
 }
-body{
 
-
-
-}
 .last-block{
   position: relative;
   width: 100%;
@@ -193,9 +185,9 @@ body{
 
 @media screen and (max-width: 600px) {
 
-
-
-
+  .blocks{
+    background-attachment: fixed;
+  }
 
   .last-block p{
     /*line-height: 33px;*/
