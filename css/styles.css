@@ -97,14 +97,17 @@ html, body{
   color: yellow;
   border-bottom: 2px solid yellow;
 }
+
 #block-1{
   background-color: #EBE1C4;
   background-image: url('images/1.png');
+
 
 }
 #block-2{
   background-color: #667799;
   background-image: url('images/2.png');
+  
 }
 #block-3{
   background-color: #D8D3DE;
@@ -216,9 +219,13 @@ html, body{
 
 @media screen and (max-device-width: 600px) {
   #mobile-modal{
-    display: block;
+   /* display: block;*/
   }
 
+  .blocks{
+    background-attachment:scroll;
+    background-size:contain;
+  }
 
   .last-block p{
     /*line-height: 33px;*/
