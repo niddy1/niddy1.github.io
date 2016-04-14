@@ -229,7 +229,7 @@ html, body{
 
   .last-block p{
     /*line-height: 33px;*/
-    margin-top: -8%;
+    margin-top: 0;
   }
 }
 
