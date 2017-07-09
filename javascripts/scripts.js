@@ -11,48 +11,48 @@ $(document).ready(function (){
     });
 
 
-    $('.desc-0').hover(function(e){
+    $('.desc-0, .desc-1, .desc-2, .desc-3').hover(function(e){
       // description div shows on mouse %, may want later
       // var newtop = e.clientY / 8;
       // $('.description').css({top: newtop+'%'});
-      $('#desc-0').stop().animate({
+      $('#desc-0, #desc-1, #desc-2, #desc-3').stop().animate({
             right: "18px"
         }, 300);
     }, function(){
-      $('#desc-0').stop().animate({
+      $('#desc-0, #desc-1, #desc-2, #desc-3').stop().animate({
             right: "-1500px"
         }, 300);
     });
 
-    $('.desc-1').hover(function(e){
-      $('#desc-1').stop().animate({
-            right: "18px"
-        }, 300);
-    }, function(){
-      $('#desc-1').stop().animate({
-            right: "-1500px"
-        }, 300);
-    });
+    // $('.desc-1').hover(function(e){
+    //   $('#desc-1').stop().animate({
+    //         right: "18px"
+    //     }, 300);
+    // }, function(){
+    //   $('#desc-1').stop().animate({
+    //         right: "-1500px"
+    //     }, 300);
+    // });
 
-    $('.desc-2').hover(function(e){
-      $('#desc-2').stop().animate({
-            right: "18px"
-        }, 300);
-    }, function(){
-      $('#desc-2').stop().animate({
-            right: "-1500px"
-        }, 300);
-    });
+    // $('.desc-2').hover(function(e){
+    //   $('#desc-2').stop().animate({
+    //         right: "18px"
+    //     }, 300);
+    // }, function(){
+    //   $('#desc-2').stop().animate({
+    //         right: "-1500px"
+    //     }, 300);
+    // });
 
-    $('.desc-3').hover(function(e){
-      $('#desc-3').stop().animate({
-            right: "18px"
-        }, 300);
-    }, function(){
-      $('#desc-3').stop().animate({
-            right: "-1500px"
-        }, 300);
-    });
+    // $('.desc-3').hover(function(e){
+    //   $('#desc-3').stop().animate({
+    //         right: "18px"
+    //     }, 300);
+    // }, function(){
+    //   $('#desc-3').stop().animate({
+    //         right: "-1500px"
+    //     }, 300);
+    // });
 
 
 });
