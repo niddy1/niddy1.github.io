@@ -56,12 +56,12 @@ $(document).ready(function (){
 
     //////
 
-    $('.desc-golfweek').hover(function(e){
-      $('#desc-golfweek').stop().animate({
+    $('.desc-golf').hover(function(e){
+      $('#desc-golf').stop().animate({
             right: "18px"
         }, 300);
     }, function(){
-      $('#desc-golfweek').stop().animate({
+      $('#desc-golf').stop().animate({
             right: "-1500px"
         }, 300);
     });
