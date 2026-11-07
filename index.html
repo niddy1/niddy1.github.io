@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
   <head>
     <!-- Global site tag (gtag.js) - Google Analytics -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=UA-114999132-2"></script>
@@ -11,29 +11,20 @@
       gtag('config', 'UA-114999132-2');
     </script>
     <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Ian Andreu</title>
     <link rel="shortcut icon" href="css/images/tab-icon.ico">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/skeleton/2.0.4/skeleton.css">
-    <link href='https://fonts.googleapis.com/css?family=Inconsolata:700,400' rel='stylesheet' type='text/css'>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css?family=Inconsolata:700,400&display=swap" rel="stylesheet" type="text/css">
     <link rel="stylesheet" href="css/styles.css">
-      <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
-    <script src="javascripts/scripts.js" type="text/javascript">
-    </script>
-
+    <script src="javascripts/scripts.js" defer></script>
   </head>
   <body>
-<div id="mobile-modal">
-  <div id="modal-close">
-    X
-  </div>
 
-  <span>
-      Background images under construction, please view on desktop.
-  </span>
-
-
-</div>
-  <!-- description sliders -->
+    <!-- Project descriptions. On desktop they slide in from the right when you
+         hover a link; on phones/tablets scripts.js shows them inside each block. -->
     <div id="desc-0" class="description">
       A Ruby on Rails app with a game component, users compete to eat at the most pizza places.
       <br>
@@ -61,7 +52,7 @@
     <div id="desc-3" class="description">
       A mobile-first POS system designed for restaurant waitstaff to streamline business processes.
       <br>
-      Utilized  PostgreSQL database for use in Sinatra web application .
+      Utilized  PostgreSQL database for use in Sinatra web application .
       <br>
       Implemented mobile-response design using Bootstrap.
     </div>
@@ -131,414 +122,105 @@
     </div>
 
 
-    <!-- blocks -->
+    <!-- Blocks. This set is written once; scripts.js repeats it so the page
+         loops a few times, which keeps the "commitment to the scroll" joke. -->
+    <div id="loop">
 
+      <div class="blocks block-1 first-block">
+        <p>
+          Ian Andreu
+        </p>
+      </div>
+      <div class="blocks block-2">
+        <p>
+          Web Developer
+        </p>
+      </div>
+      <div class="blocks block-3">
+        <p>
+          New York, NY
+        </p>
+      </div>
+      <div class="blocks block-4">
+        <p>
+          <a href="mailto:ianandreu@gmail.com?Subject=Hey%20Ian">Email</a>
+          &#9675;
+          <a href="https://docs.google.com/document/d/1pqgzc7Mh8_ZsrwEHamR27mzsCL7kb2wJnitQmPYTq2Q/view" target="_blank">Resume</a>
+        </p>
+      </div>
+      <div class="blocks block-5">
+        <p>
+          <a href="https://www.linkedin.com/in/ianandreu" target="_blank">LinkedIn</a>
+          &#9675;
+          <a href="https://github.com/niddy1" target="_blank">Github</a>
+        </p>
+      </div>
+      <div class="blocks block-6">
+        <p>
+          Work: <a data-desc="golf" href="http://www.golfweek.com/" target="_blank">Golfweek</a>
+        </p>
+      </div>
+      <div class="blocks block-7">
+        <p>
+          Work: <a data-desc="nfl" href="https://nfl-team-card-dev.firebaseapp.com/" target="_blank">NFL Extra Points</a>
+        </p>
+      </div>
+      <div class="blocks block-8">
+        <p>
+          Work: <a data-desc="dancebody" href="https://dancebody.com" target="_blank">Dancebody</a>
+        </p>
+      </div>
+      <div class="blocks block-8-5">
+        <p>
+          Work: <a data-desc="brightcore" href="http://brightcoreenergy.com/" target="_blank">Brightcore Energy</a>
+        </p>
+      </div>
+      <div class="blocks block-9">
+        <p>
+          Work: <a data-desc="sallie" href="http://client.gigareef.com/cosgrove/commence/website/" target="_blank">Commence by Sallie Mae</a>
+        </p>
+      </div>
+      <div class="blocks block-10">
+        <p>
+          Work: <a data-desc="castellanos" href="http://cmcastellanos.com/" target="_blank">Castellanos</a>
+        </p>
+      </div>
+      <div class="blocks block-11">
+        <p>
+          Work: <a data-desc="cws" href="http://clarkwalkerstudio.com/" target="_blank">Clark Walker Studio</a>
+        </p>
+      </div>
+      <div class="blocks block-12">
+        <p>
+          Work: <a data-desc="wsta" href="http://www.wsta.org/" target="_blank">WSTA</a>
+        </p>
+      </div>
+      <div class="blocks block-13">
+        <p>
+          Work: <a data-desc="0" href="https://protected-journey-3151.herokuapp.com/" target="_blank">PizzaQuest</a>
+        </p>
+      </div>
+      <div class="blocks block-14">
+        <p>
+          Work: <a data-desc="1" href="http://www.ianandreu.com/Blackjack" target="_blank">Blackjack</a>
+        </p>
+      </div>
+      <div class="blocks block-15">
+        <p>
+          Work: <a data-desc="2" href="https://quiet-crag-6865.herokuapp.com/" target="_blank">Votograph</a>
+        </p>
+      </div>
+      <div class="blocks block-16">
+        <p>
+          Work: <a data-desc="3" href="https://fathomless-sands-1016.herokuapp.com/" target="_blank">RESTaurant</a>
+        </p>
+      </div>
 
-    <div id="block-1" class="blocks first-block">
-      <p>
-        Ian Andreu
-      </p>
-    </div>
-    <div id="block-2" class="blocks">
-    <p>
-      Web Developer
-    </p>
-    </div>
-    <div id="block-3" class="blocks">
-    <p>
-        New York, NY
-    </p>
-    </div>
-    <div id="block-4" class="blocks">
-      <p>
-        <a href="mailto:ianandreu@gmail.com?Subject=Hey%20Ian">Email</a>
-        &#9675;
-        <a href="https://docs.google.com/document/d/1pqgzc7Mh8_ZsrwEHamR27mzsCL7kb2wJnitQmPYTq2Q/view" target="_blank">Resume</a>
-      </p>
-    </div>
-    <div id="block-5" class="blocks">
-      <p>
-        <a href="https://www.linkedin.com/in/ianandreu" target="_blank">LinkedIn</a>
-        &#9675;
-        <a href="https://github.com/niddy1" target="_blank">Github</a>
-      </p>
-    </div>
-    <div id="block-6" class="blocks">
-      <p>
-        Work: <a class="desc-golf" href="http://www.golfweek.com/" target="_blank">Golfweek</a>
-      </p>
-    </div>
-    <div id="block-7" class="blocks">
-      <p>
-        Work: <a class="desc-nfl" href="https://nfl-team-card-dev.firebaseapp.com/" target="_blank">NFL Extra Points</a>
-      </p>
-    </div>
-    <div id="block-8" class="blocks">
-      <p>
-        Work: <a class ="desc-dancebody" href="https://dancebody.com" target="_blank">Dancebody</a>
-      </p>
-    </div>
-    <div id="block-8-5" class="blocks">
-      <p>
-        Work: <a class="desc-brightcore" href="http://brightcoreenergy.com/" target="_blank">Brightcore Energy</a>
-      </p>
-    </div>
-
-
-    <div id="block-9" class="blocks">
-      <p>
-        Work: <a class="desc-sallie" href="http://client.gigareef.com/cosgrove/commence/website/" target="_blank">Commence by Sallie Mae</a>
-      </p>
-    </div>
-
-    <div id="block-10" class="blocks">
-      <p>
-        Work: <a class="desc-castellanos" href="http://cmcastellanos.com/" target="_blank">Castellanos</a>
-      </p>
-    </div>
-    <div id="block-11" class="blocks">
-      <p>
-        Work: <a class="desc-cws" href="http://clarkwalkerstudio.com/" target="_blank">Clark Walker Studio</a>
-      </p>
-    </div>
-    <div id="block-12" class="blocks">
-      <p>
-        Work: <a class="desc-wsta" href="http://www.wsta.org/" target="_blank">WSTA</a>
-      </p>
-    </div>
-
-    <div id="block-13" class="blocks">
-      <p>
-        Work: <a class="desc-0" href="https://protected-journey-3151.herokuapp.com/" target="_blank">PizzaQuest</a>
-      </p>
-    </div>
-
-    <div id="block-14" class="blocks">
-      <p>
-      Work: <a class="desc-1" href="http://www.ianandreu.com/Blackjack" target="_blank">Blackjack</a>
-      </p>
-    </div>
-
-    <div id="block-15" class="blocks">
-      <p>
-        Work: <a class ="desc-2" href="https://quiet-crag-6865.herokuapp.com/" target="_blank">Votograph</a>
-      </p>
-    </div>
-
-    <div id="block-16" class="blocks">
-      <p>
-        Work: <a class="desc-3" href="https://fathomless-sands-1016.herokuapp.com/" target="_blank">RESTaurant</a>
-      </p>
     </div>
 
-    <!-- END OF FIRST LOOP -->
-
-    <!-- blocks -->
-
-
-    <div id="block-1" class="blocks">
-      <p>
-        Ian Andreu
-      </p>
-    </div>
-    <div id="block-2" class="blocks">
-    <p>
-      Web Developer
-    </p>
-    </div>
-    <div id="block-3" class="blocks">
-    <p>
-        New York, NY
-    </p>
-    </div>
-    <div id="block-4" class="blocks">
-      <p>
-        <a href="mailto:ianandreu@gmail.com?Subject=Hey%20Ian">Email</a>
-        &#9675;
-        <a href="https://drive.google.com/file/d/0ByvH-XFp6_ToYVVvX2ZBQlNhZk0/view" target="_blank">Resume</a>
-      </p>
-    </div>
-    <div id="block-5" class="blocks">
-      <p>
-        <a href="https://www.linkedin.com/in/ianandreu" target="_blank">LinkedIn</a>
-        &#9675;
-        <a href="https://github.com/niddy1" target="_blank">Github</a>
-      </p>
-    </div>
-    <div id="block-6" class="blocks">
-      <p>
-        Work: <a class="desc-golf" href="http://www.golfweek.com/" target="_blank">Golfweek</a>
-      </p>
-    </div>
-    <div id="block-7" class="blocks">
-      <p>
-        Work: <a class="desc-nfl" href="https://nfl-team-card-dev.firebaseapp.com/" target="_blank">NFL Extra Points</a>
-      </p>
-    </div>
-    <div id="block-8" class="blocks">
-      <p>
-        Work: <a class ="desc-dancebody" href="https://dancebody.com" target="_blank">Dancebody</a>
-      </p>
-    </div>
-    <div id="block-8-5" class="blocks">
-      <p>
-        Work: <a class="desc-brightcore" href="http://brightcoreenergy.com/" target="_blank">Brightcore Energy</a>
-      </p>
-    </div>
-
-
-    <div id="block-9" class="blocks">
-      <p>
-        Work: <a class="desc-sallie" href="http://client.gigareef.com/cosgrove/commence/website/" target="_blank">Commence by Sallie Mae</a>
-      </p>
-    </div>
-
-    <div id="block-10" class="blocks">
-      <p>
-        Work: <a class="desc-castellanos" href="http://cmcastellanos.com/" target="_blank">Castellanos</a>
-      </p>
-    </div>
-    <div id="block-11" class="blocks">
-      <p>
-        Work: <a class="desc-cws" href="http://clarkwalkerstudio.com/" target="_blank">Clark Walker Studio</a>
-      </p>
-    </div>
-    <div id="block-12" class="blocks">
-      <p>
-        Work: <a class="desc-wsta" href="http://www.wsta.org/" target="_blank">WSTA</a>
-      </p>
-    </div>
-
-    <div id="block-13" class="blocks">
-      <p>
-        Work: <a class="desc-0" href="https://protected-journey-3151.herokuapp.com/" target="_blank">PizzaQuest</a>
-      </p>
-    </div>
-
-    <div id="block-14" class="blocks">
-      <p>
-      Work: <a class="desc-1" href="http://www.ianandreu.com/Blackjack" target="_blank">Blackjack</a>
-      </p>
-    </div>
-
-    <div id="block-15" class="blocks">
-      <p>
-        Work: <a class ="desc-2" href="https://quiet-crag-6865.herokuapp.com/" target="_blank">Votograph</a>
-      </p>
-    </div>
-
-    <div id="block-16" class="blocks">
-      <p>
-        Work: <a class="desc-3" href="https://fathomless-sands-1016.herokuapp.com/" target="_blank">RESTaurant</a>
-      </p>
-    </div>
-
-    <!-- END OF FIRST LOOP -->
-    <!-- blocks -->
-
-
-    <div id="block-1" class="blocks">
-      <p>
-        Ian Andreu
-      </p>
-    </div>
-    <div id="block-2" class="blocks">
-    <p>
-      Web Developer
-    </p>
-    </div>
-    <div id="block-3" class="blocks">
-    <p>
-        New York, NY
-    </p>
-    </div>
-    <div id="block-4" class="blocks">
-      <p>
-        <a href="mailto:ianandreu@gmail.com?Subject=Hey%20Ian">Email</a>
-        &#9675;
-        <a href="https://drive.google.com/file/d/0ByvH-XFp6_ToYVVvX2ZBQlNhZk0/view" target="_blank">Resume</a>
-      </p>
-    </div>
-    <div id="block-5" class="blocks">
-      <p>
-        <a href="https://www.linkedin.com/in/ianandreu" target="_blank">LinkedIn</a>
-        &#9675;
-        <a href="https://github.com/niddy1" target="_blank">Github</a>
-      </p>
-    </div>
-    <div id="block-6" class="blocks">
-      <p>
-        Work: <a class="desc-golf" href="http://www.golfweek.com/" target="_blank">Golfweek</a>
-      </p>
-    </div>
-    <div id="block-7" class="blocks">
-      <p>
-        Work: <a class="desc-nfl" href="https://nfl-team-card-dev.firebaseapp.com/" target="_blank">NFL Extra Points</a>
-      </p>
-    </div>
-    <div id="block-8" class="blocks">
-      <p>
-        Work: <a class ="desc-dancebody" href="https://dancebody.com" target="_blank">Dancebody</a>
-      </p>
-    </div>
-    <div id="block-8-5" class="blocks">
-      <p>
-        Work: <a class="desc-brightcore" href="http://brightcoreenergy.com/" target="_blank">Brightcore Energy</a>
-      </p>
-    </div>
-
-
-    <div id="block-9" class="blocks">
-      <p>
-        Work: <a class="desc-sallie" href="http://client.gigareef.com/cosgrove/commence/website/" target="_blank">Commence by Sallie Mae</a>
-      </p>
-    </div>
-
-    <div id="block-10" class="blocks">
-      <p>
-        Work: <a class="desc-castellanos" href="http://cmcastellanos.com/" target="_blank">Castellanos</a>
-      </p>
-    </div>
-    <div id="block-11" class="blocks">
-      <p>
-        Work: <a class="desc-cws" href="http://clarkwalkerstudio.com/" target="_blank">Clark Walker Studio</a>
-      </p>
-    </div>
-    <div id="block-12" class="blocks">
-      <p>
-        Work: <a class="desc-wsta" href="http://www.wsta.org/" target="_blank">WSTA</a>
-      </p>
-    </div>
-
-    <div id="block-13" class="blocks">
-      <p>
-        Work: <a class="desc-0" href="https://protected-journey-3151.herokuapp.com/" target="_blank">PizzaQuest</a>
-      </p>
-    </div>
-
-    <div id="block-14" class="blocks">
-      <p>
-      Work: <a class="desc-1" href="http://www.ianandreu.com/Blackjack" target="_blank">Blackjack</a>
-      </p>
-    </div>
-
-    <div id="block-15" class="blocks">
-      <p>
-        Work: <a class ="desc-2" href="https://quiet-crag-6865.herokuapp.com/" target="_blank">Votograph</a>
-      </p>
-    </div>
-
-    <div id="block-16" class="blocks">
-      <p>
-        Work: <a class="desc-3" href="https://fathomless-sands-1016.herokuapp.com/" target="_blank">RESTaurant</a>
-      </p>
-    </div>
-
-    <!-- END OF FIRST LOOP -->
-    <!-- blocks -->
-
-
-    <div id="block-1" class="blocks">
-      <p>
-        Ian Andreu
-      </p>
-    </div>
-    <div id="block-2" class="blocks">
-    <p>
-      Web Developer
-    </p>
-    </div>
-    <div id="block-3" class="blocks">
-    <p>
-        New York, NY
-    </p>
-    </div>
-    <div id="block-4" class="blocks">
-      <p>
-        <a href="mailto:ianandreu@gmail.com?Subject=Hey%20Ian">Email</a>
-        &#9675;
-        <a href="https://drive.google.com/file/d/0ByvH-XFp6_ToYVVvX2ZBQlNhZk0/view" target="_blank">Resume</a>
-      </p>
-    </div>
-    <div id="block-5" class="blocks">
-      <p>
-        <a href="https://www.linkedin.com/in/ianandreu" target="_blank">LinkedIn</a>
-        &#9675;
-        <a href="https://github.com/niddy1" target="_blank">Github</a>
-      </p>
-    </div>
-    <div id="block-6" class="blocks">
-      <p>
-        Work: <a class="desc-golf" href="http://www.golfweek.com/" target="_blank">Golfweek</a>
-      </p>
-    </div>
-    <div id="block-7" class="blocks">
-      <p>
-        Work: <a class="desc-nfl" href="https://nfl-team-card-dev.firebaseapp.com/" target="_blank">NFL Extra Points</a>
-      </p>
-    </div>
-    <div id="block-8" class="blocks">
-      <p>
-        Work: <a class ="desc-dancebody" href="https://dancebody.com" target="_blank">Dancebody</a>
-      </p>
-    </div>
-    <div id="block-8-5" class="blocks">
-      <p>
-        Work: <a class="desc-brightcore" href="http://brightcoreenergy.com/" target="_blank">Brightcore Energy</a>
-      </p>
-    </div>
-
-
-    <div id="block-9" class="blocks">
-      <p>
-        Work: <a class="desc-sallie" href="http://client.gigareef.com/cosgrove/commence/website/" target="_blank">Commence by Sallie Mae</a>
-      </p>
-    </div>
-
-    <div id="block-10" class="blocks">
-      <p>
-        Work: <a class="desc-castellanos" href="http://cmcastellanos.com/" target="_blank">Castellanos</a>
-      </p>
-    </div>
-    <div id="block-11" class="blocks">
-      <p>
-        Work: <a class="desc-cws" href="http://clarkwalkerstudio.com/" target="_blank">Clark Walker Studio</a>
-      </p>
-    </div>
-    <div id="block-12" class="blocks">
-      <p>
-        Work: <a class="desc-wsta" href="http://www.wsta.org/" target="_blank">WSTA</a>
-      </p>
-    </div>
-
-    <div id="block-13" class="blocks">
-      <p>
-        Work: <a class="desc-0" href="https://protected-journey-3151.herokuapp.com/" target="_blank">PizzaQuest</a>
-      </p>
-    </div>
-
-    <div id="block-14" class="blocks">
-      <p>
-      Work: <a class="desc-1" href="http://www.ianandreu.com/Blackjack" target="_blank">Blackjack</a>
-      </p>
-    </div>
-
-    <div id="block-15" class="blocks">
-      <p>
-        Work: <a class ="desc-2" href="https://quiet-crag-6865.herokuapp.com/" target="_blank">Votograph</a>
-      </p>
-    </div>
-
-    <div id="block-16" class="blocks">
-      <p>
-        Work: <a class="desc-3" href="https://fathomless-sands-1016.herokuapp.com/" target="_blank">RESTaurant</a>
-      </p>
-    </div>
-
-    <!-- END OF FIRST LOOP -->
     <div class="last-block">
       <p>
-       I appreciate your commitment to the <a class="top-link" href="#top">scroll</a>
+        I appreciate your commitment to the <a class="top-link" href="#top">scroll</a>
       </p>
     </div>
 
