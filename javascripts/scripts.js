@@ -59,6 +59,27 @@
     link.addEventListener('blur', close);
   });
 
+  // Colour swap button: toggles the shoe-inspired palette (colours live in styles.css).
+  // The choice is remembered for next visit; storage can be blocked, so it's all optional.
+  var swapButton = document.getElementById('color-swap');
+  if (swapButton) {
+    var STORAGE_KEY = 'palette';
+
+    function setPalette(on) {
+      document.body.classList.toggle('palette-shoes', on);
+      swapButton.setAttribute('aria-pressed', on ? 'true' : 'false');
+      try { localStorage.setItem(STORAGE_KEY, on ? 'shoes' : 'default'); } catch (e) {}
+    }
+
+    var saved = null;
+    try { saved = localStorage.getItem(STORAGE_KEY); } catch (e) {}
+    if (saved === 'shoes') setPalette(true);
+
+    swapButton.addEventListener('click', function () {
+      setPalette(!document.body.classList.contains('palette-shoes'));
+    });
+  }
+
   // 4. "scroll" link: glide to the top, then all the way back down
   var scrollRun = 0; // bumped to cancel a run in progress
 

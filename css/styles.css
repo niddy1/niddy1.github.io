@@ -30,14 +30,22 @@ a:focus-visible {
   outline-offset: 2px;
 }
 
-/* Text scales with the screen: 40px on desktop, smaller on phones */
+/* Text scales with the screen: 40px on desktop, smaller on phones.
+   --ink / --shadow let a block change its text colour (the colour-swap palette
+   uses dark text on its lighter bands); without them it's white as before. */
 p {
   font-size: clamp(26px, 7vw, 40px);
-  text-shadow: 0 3px 0 rgba(0, 0, 0, 0.5);
+  text-shadow: var(--shadow, 0 3px 0 rgba(0, 0, 0, 0.5));
   width: 100%;
   margin: 0;
   text-align: center;
-  color: white;
+  color: var(--ink, white);
+}
+.blocks a {
+  color: inherit;
+}
+.blocks a:hover {
+  color: black;
 }
 
 
@@ -63,6 +71,7 @@ p {
   background-size: auto 50%;
   border-left: black 10px solid;
   border-right: black 10px solid;
+  transition: background-color 500ms ease;
 }
 
 .first-block {
@@ -88,6 +97,78 @@ p {
 .block-14   { background-color: #667799; --bg: url('images/14.png'); }
 .block-15   { background-color: #EBDBD0; --bg: url('images/15.png'); }
 .block-16   { background-color: #7a9460; --bg: url('images/16.png'); }
+
+
+/* ---------- Colour swap palette ----------
+   Built from the pink / teal / yellow of the Nike SB shoes
+   (#A82962, #489FA5, #F1C564) plus companions in the same family.
+   Switched on by the "Swap colors" button, which adds .palette-shoes to <body>.
+   --ink is the text colour for that band: dark on the light bands
+   (yellow, gray, aqua) so the words stay readable. */
+
+.palette-shoes .block-1   { background-color: #A82962; }  /* pink */
+.palette-shoes .block-2   { background-color: #489FA5; }  /* teal */
+.palette-shoes .block-3   { background-color: #F1C564; --ink: #1B2A2D; --shadow: none; }  /* yellow */
+.palette-shoes .block-4   { background-color: #1F6F78; }  /* deep teal */
+.palette-shoes .block-5   { background-color: #E5607F; }  /* coral */
+.palette-shoes .block-6   { background-color: #D6DBD8; --ink: #1B2A2D; --shadow: none; }  /* gray */
+.palette-shoes .block-7   { background-color: #6E1B47; }  /* plum */
+.palette-shoes .block-8   { background-color: #8FD3CB; --ink: #1B2A2D; --shadow: none; }  /* aqua */
+.palette-shoes .block-8-5 { background-color: #5B4636; }  /* brown */
+.palette-shoes .block-9   { background-color: #F1C564; --ink: #1B2A2D; --shadow: none; }  /* yellow */
+.palette-shoes .block-10  { background-color: #489FA5; }  /* teal */
+.palette-shoes .block-11  { background-color: #A82962; }  /* pink */
+.palette-shoes .block-12  { background-color: #22454B; }  /* slate */
+.palette-shoes .block-13  { background-color: #8FD3CB; --ink: #1B2A2D; --shadow: none; }  /* aqua */
+.palette-shoes .block-14  { background-color: #6E1B47; }  /* plum */
+.palette-shoes .block-15  { background-color: #E5607F; }  /* coral */
+.palette-shoes .block-16  { background-color: #1F6F78; }  /* deep teal */
+
+/* keep the keyboard-focus ring visible on the yellow bands */
+.palette-shoes .blocks a:focus-visible {
+  outline-color: currentColor;
+}
+
+
+/* ---------- Colour swap button ---------- */
+
+#color-swap {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  bottom: max(16px, env(safe-area-inset-bottom));
+  z-index: 10;
+  /* skeleton.css styles <button>; reset what we don't want from it */
+  height: auto;
+  margin: 0;
+  padding: 10px 16px;
+  font-family: 'Inconsolata', monospace;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: normal;
+  text-transform: none;
+  color: yellow;
+  background-color: black;
+  border: 2px solid yellow;
+  border-radius: 0;
+  cursor: pointer;
+  /* thin black edge so the button never blends into a yellow band */
+  box-shadow: 0 0 0 2px black;
+}
+#color-swap:hover {
+  color: black;
+  background-color: yellow;
+  border-color: yellow;
+}
+#color-swap:focus-visible {
+  outline: 3px solid white;
+  outline-offset: 2px;
+}
+#color-swap[aria-pressed="true"] {
+  color: black;
+  background-color: yellow;
+}
 
 
 /* ---------- Footer ---------- */
@@ -226,7 +307,8 @@ p {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .description {
+  .description,
+  .blocks {
     transition: none;
   }
   a:hover {
