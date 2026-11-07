@@ -78,55 +78,46 @@ p {
   border-top: black 10px solid;
 }
 
-/* used briefly while restoring a saved palette so it doesn't fade in on page load */
-#loop.no-transition .blocks {
-  transition: none;
-}
+/* Each block's default colour and picture. The colours are the pink, teal and
+   yellow of the Nike SB shoes (#A82962, #489FA5, #F1C564) plus companions in the
+   same family. Light bands get dark text (--ink) with a soft halo in the band's own
+   colour (--shadow) so the words stay readable over the cat. The "Swap colors"
+   button (scripts.js) overrides all of this with a random palette; a refresh
+   brings these back. The picture lives in --bg so the desktop and phone versions
+   of the fixed-picture effect can share it. */
+.block-1    { background-color: #A82962; --bg: url('images/1.png'); }  /* pink */
+.block-2    { background-color: #489FA5; --bg: url('images/2.png'); }  /* teal */
+.block-3    { background-color: #F1C564; --ink: #1B2A2D; --shadow: 0 0 3px #F1C564, 0 0 6px #F1C564, 0 0 10px #F1C564; --bg: url('images/3.png'); }  /* yellow */
+.block-4    { background-color: #1F6F78; --bg: url('images/4.png'); }  /* deep teal */
+.block-5    { background-color: #E5607F; --bg: url('images/5.png'); }  /* coral */
+.block-6    { background-color: #D6DBD8; --ink: #1B2A2D; --shadow: 0 0 3px #D6DBD8, 0 0 6px #D6DBD8, 0 0 10px #D6DBD8; --bg: url('images/6.png'); }  /* gray */
+.block-7    { background-color: #6E1B47; --bg: url('images/7.png'); }  /* plum */
+.block-8    { background-color: #8FD3CB; --ink: #1B2A2D; --shadow: 0 0 3px #8FD3CB, 0 0 6px #8FD3CB, 0 0 10px #8FD3CB; --bg: url('images/8.png'); }  /* aqua */
+.block-8-5  { background-color: #5B4636; --bg: url('images/8.png'); }  /* brown */
+.block-9    { background-color: #F1C564; --ink: #1B2A2D; --shadow: 0 0 3px #F1C564, 0 0 6px #F1C564, 0 0 10px #F1C564; --bg: url('images/9.png'); }  /* yellow */
+.block-10   { background-color: #489FA5; --bg: url('images/10.png'); }  /* teal */
+.block-11   { background-color: #A82962; --bg: url('images/11.png'); }  /* pink */
+.block-12   { background-color: #22454B; --bg: url('images/12.png'); }  /* slate */
+.block-13   { background-color: #8FD3CB; --ink: #1B2A2D; --shadow: 0 0 3px #8FD3CB, 0 0 6px #8FD3CB, 0 0 10px #8FD3CB; --bg: url('images/13.png'); }  /* aqua */
+.block-14   { background-color: #6E1B47; --bg: url('images/14.png'); }  /* plum */
+.block-15   { background-color: #E5607F; --bg: url('images/15.png'); }  /* coral */
+.block-16   { background-color: #1F6F78; --bg: url('images/16.png'); }  /* deep teal */
 
-/* Each block's colour and picture. The picture lives in --bg so the same
-   image can be used by the desktop and the phone version of the effect. */
-.block-1    { background-color: #EBE1C4; --bg: url('images/1.png'); }
-.block-2    { background-color: #667799; --bg: url('images/2.png'); }
-.block-3    { background-color: #D8D3DE; --bg: url('images/3.png'); }
-.block-4    { background-color: #7a9460; --bg: url('images/4.png'); }
-.block-5    { background-color: #dd9977; --bg: url('images/5.png'); }
-.block-6    { background-color: #665566; --bg: url('images/6.png'); }
-.block-7    { background-color: #223333; --bg: url('images/7.png'); }
-.block-8    { background-color: #9EA5AA; --bg: url('images/8.png'); }
-.block-8-5  { background-color: #5C4742; --bg: url('images/8.png'); }
-.block-9    { background-color: #D8D3DE; --bg: url('images/9.png'); }
-.block-10   { background-color: #7a9460; --bg: url('images/10.png'); }
-.block-11   { background-color: #667799; --bg: url('images/11.png'); }
-.block-12   { background-color: #B3C5C5; --bg: url('images/12.png'); }
-.block-13   { background-color: #EBE1C4; --bg: url('images/13.png'); }
-.block-14   { background-color: #667799; --bg: url('images/14.png'); }
-.block-15   { background-color: #EBDBD0; --bg: url('images/15.png'); }
-.block-16   { background-color: #7a9460; --bg: url('images/16.png'); }
 
-
-/* ---------- Colour swap ----------
-   The palettes are generated in scripts.js: it sets each band's background-colour
-   and, for light colours, --ink / --shadow (dark text so it stays readable).
-   .palette-custom is on <body> while a generated palette is showing. */
-
-/* keep the keyboard-focus ring visible on light bands */
-.palette-custom .blocks a:focus-visible {
+/* keep the keyboard-focus ring visible on the light bands */
+.blocks a:focus-visible {
   outline-color: currentColor;
 }
 
 
-/* ---------- Colour swap buttons ---------- */
+/* ---------- Colour swap button ---------- */
 
-#color-controls {
+#color-swap {
   position: fixed;
   right: 16px;
   bottom: 16px;
   bottom: max(16px, env(safe-area-inset-bottom));
   z-index: 10;
-  display: flex;
-  gap: 10px;
-}
-#color-controls button {
   /* skeleton.css styles <button>; reset what we don't want from it */
   height: auto;
   margin: 0;
@@ -142,25 +133,22 @@ p {
   border: 2px solid yellow;
   border-radius: 0;
   cursor: pointer;
-  /* thin black edge so a button never blends into a yellow band */
+  /* thin black edge so the button never blends into a yellow band */
   box-shadow: 0 0 0 2px black;
-}
-#color-controls button[hidden] {
-  display: none;
 }
 /* only on devices that can really hover, so it doesn't stay "stuck" after a tap on a phone */
 @media (hover: hover) {
-  #color-controls button:hover {
+  #color-swap:hover {
     color: black;
     background-color: yellow;
     border-color: yellow;
   }
 }
-#color-controls button:active {
+#color-swap:active {
   color: black;
   background-color: yellow;
 }
-#color-controls button:focus-visible {
+#color-swap:focus-visible {
   outline: 3px solid white;
   outline-offset: 2px;
 }

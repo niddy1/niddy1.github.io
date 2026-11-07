@@ -63,14 +63,14 @@
   // the spacebar on coolors.co, but generated right here, no outside service).
   // Each palette is built from a colour-wheel "harmony" (analogous, complementary,
   // triad...) with a spread of light and dark, so the colours go together.
-  // The latest palette is remembered for the next visit; storage can be blocked,
-  // so that part is optional. "Reset" brings back the original colours.
+  // Nothing is saved: refreshing the page brings back the default (shoe) colours from
+  // styles.css.
   var swapButton = document.getElementById('color-swap');
-  var resetButton = document.getElementById('color-reset');
-  if (swapButton && resetButton) {
-    var STORAGE_KEY = 'palette-v2';
+  if (swapButton) {
     var BANDS_PER_SET = 17;        // the blocks in index.html before the page repeats
     var DARK_INK = '#1B2A2D';      // text colour used on light bands
+    var WHITE_INK = '#ffffff';     // text colour used on dark bands (same look as the stylesheet default)
+    var WHITE_SHADOW = '0 3px 0 rgba(0, 0, 0, 0.5)';
 
     function rand(min, max) { return min + Math.random() * (max - min); }
 
@@ -148,55 +148,23 @@
       Array.prototype.forEach.call(loop.children, function (band, index) {
         var color = colors[seq[index % BANDS_PER_SET]];
         band.style.backgroundColor = color;
+        // always set both explicitly: the default light bands get dark text from the
+        // stylesheet, so a dark generated colour has to say "white" itself
         if (usesDarkText(color)) {
           band.style.setProperty('--ink', DARK_INK);
           // a soft halo in the band's own colour lifts dark letters off the dark cat picture
           band.style.setProperty('--shadow', '0 0 3px ' + color + ', 0 0 6px ' + color + ', 0 0 10px ' + color);
         } else {
-          band.style.removeProperty('--ink');
-          band.style.removeProperty('--shadow');
+          band.style.setProperty('--ink', WHITE_INK);
+          band.style.setProperty('--shadow', WHITE_SHADOW);
         }
       });
-      document.body.classList.add('palette-custom');
-      resetButton.hidden = false;
-    }
-
-    function resetPalette() {
-      Array.prototype.forEach.call(loop.children, function (band) {
-        band.style.removeProperty('background-color');
-        band.style.removeProperty('--ink');
-        band.style.removeProperty('--shadow');
-      });
-      document.body.classList.remove('palette-custom');
-      resetButton.hidden = true;
-      try { localStorage.removeItem(STORAGE_KEY); } catch (e) {}
-    }
-
-    function isValid(saved) {
-      return saved && Array.isArray(saved.colors) && Array.isArray(saved.seq) &&
-        saved.seq.length === BANDS_PER_SET &&
-        saved.colors.every(function (c) { return /^#[0-9a-f]{6}$/i.test(c); }) &&
-        saved.seq.every(function (n) { return n >= 0 && n < saved.colors.length; });
     }
 
     swapButton.addEventListener('click', function () {
       var colors = makePalette();
-      var seq = makeSequence(colors.length);
-      applyPalette(colors, seq);
-      try { localStorage.setItem(STORAGE_KEY, JSON.stringify({ colors: colors, seq: seq })); } catch (e) {}
+      applyPalette(colors, makeSequence(colors.length));
     });
-    resetButton.addEventListener('click', resetPalette);
-
-    // restore the last palette instantly (no fade from the original colours on page load)
-    try {
-      var saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
-      if (isValid(saved)) {
-        loop.classList.add('no-transition');
-        applyPalette(saved.colors, saved.seq);
-        void loop.offsetHeight; // flush styles while transitions are off
-        loop.classList.remove('no-transition');
-      }
-    } catch (e) {}
   }
 
   // 4. "scroll" link: glide to the top, then all the way back down
