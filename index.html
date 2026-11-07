@@ -122,8 +122,12 @@
     </div>
 
 
-    <!-- Colour swap: toggles the "palette-shoes" class on <body> (see scripts.js / styles.css) -->
-    <button type="button" id="color-swap" aria-pressed="false">Swap colors</button>
+    <!-- Colour swap: every click generates a new random 5-colour palette (see scripts.js).
+         "Reset" appears once a palette is active and brings back the original colours. -->
+    <div id="color-controls">
+      <button type="button" id="color-reset" hidden>Reset</button>
+      <button type="button" id="color-swap">Swap colors</button>
+    </div>
 
     <!-- Blocks. This set is written once; scripts.js repeats it so the page
          loops a few times, which keeps the "commitment to the scroll" joke. -->

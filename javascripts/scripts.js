@@ -59,25 +59,144 @@
     link.addEventListener('blur', close);
   });
 
-  // Colour swap button: toggles the shoe-inspired palette (colours live in styles.css).
-  // The choice is remembered for next visit; storage can be blocked, so it's all optional.
+  // Colour swap: every click makes a new random 5-colour palette (a bit like pressing
+  // the spacebar on coolors.co, but generated right here, no outside service).
+  // Each palette is built from a colour-wheel "harmony" (analogous, complementary,
+  // triad...) with a spread of light and dark, so the colours go together.
+  // The latest palette is remembered for the next visit; storage can be blocked,
+  // so that part is optional. "Reset" brings back the original colours.
   var swapButton = document.getElementById('color-swap');
-  if (swapButton) {
-    var STORAGE_KEY = 'palette';
+  var resetButton = document.getElementById('color-reset');
+  if (swapButton && resetButton) {
+    var STORAGE_KEY = 'palette-v2';
+    var BANDS_PER_SET = 17;        // the blocks in index.html before the page repeats
+    var DARK_INK = '#1B2A2D';      // text colour used on light bands
 
-    function setPalette(on) {
-      document.body.classList.toggle('palette-shoes', on);
-      swapButton.setAttribute('aria-pressed', on ? 'true' : 'false');
-      try { localStorage.setItem(STORAGE_KEY, on ? 'shoes' : 'default'); } catch (e) {}
+    function rand(min, max) { return min + Math.random() * (max - min); }
+
+    function shuffle(list) {
+      for (var i = list.length - 1; i > 0; i--) {
+        var j = Math.floor(Math.random() * (i + 1));
+        var t = list[i]; list[i] = list[j]; list[j] = t;
+      }
+      return list;
     }
 
-    var saved = null;
-    try { saved = localStorage.getItem(STORAGE_KEY); } catch (e) {}
-    if (saved === 'shoes') setPalette(true);
+    function hslToHex(h, s, l) {
+      s /= 100; l /= 100;
+      var a = s * Math.min(l, 1 - l);
+      function channel(n) {
+        var k = (n + h / 30) % 12;
+        var v = l - a * Math.max(-1, Math.min(k - 3, Math.min(9 - k, 1)));
+        return ('0' + Math.round(v * 255).toString(16)).slice(-2);
+      }
+      return '#' + channel(0) + channel(8) + channel(4);
+    }
+
+    // hue offsets (degrees around the colour wheel) for five colours
+    var HARMONIES = [
+      [0, 28, 56, -28, -56],      // analogous: neighbours
+      [0, 180, 24, 204, -24],     // complementary: opposites
+      [0, 120, 240, 40, 160],     // triad: three evenly spaced
+      [0, 150, 210, 30, -30],     // split-complementary
+      [0, 90, 180, 270, 45]       // tetradic: four evenly spaced
+    ];
+
+    // one colour from each lightness band, so a palette always has dark and light ones
+    var LIGHTNESS = [[22, 34], [36, 48], [50, 62], [64, 76], [80, 92]];
+
+    function makePalette() {
+      var base = rand(0, 360);
+      var harmony = HARMONIES[Math.floor(Math.random() * HARMONIES.length)];
+      var lights = shuffle(LIGHTNESS.slice());
+      return harmony.map(function (offset, i) {
+        var hue = (base + offset + rand(-8, 8) + 360) % 360;
+        var l = rand(lights[i][0], lights[i][1]);
+        var s = l > 78 ? rand(35, 70) : rand(45, 88); // very light colours look better a bit softer
+        return hslToHex(hue, s, l);
+      });
+    }
+
+    // which palette colour goes on which band: random, but never the same colour on two
+    // neighbouring bands, including where the page loops from the last band back to the first
+    function makeSequence(colorCount) {
+      var seq = [];
+      for (var i = 0; i < BANDS_PER_SET; i++) {
+        var pick;
+        do {
+          pick = Math.floor(Math.random() * colorCount);
+        } while (i > 0 && pick === seq[i - 1] || i === BANDS_PER_SET - 1 && pick === seq[0]);
+        seq.push(pick);
+      }
+      return seq;
+    }
+
+    function luminance(hex) {
+      var v = [1, 3, 5].map(function (n) {
+        var c = parseInt(hex.substr(n, 2), 16) / 255;
+        return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
+      });
+      return 0.2126 * v[0] + 0.7152 * v[1] + 0.0722 * v[2];
+    }
+
+    // the text is large and bold, so white needs 3:1 contrast; below that use dark text
+    function usesDarkText(hex) {
+      return 1.05 / (luminance(hex) + 0.05) < 3;
+    }
+
+    function applyPalette(colors, seq) {
+      Array.prototype.forEach.call(loop.children, function (band, index) {
+        var color = colors[seq[index % BANDS_PER_SET]];
+        band.style.backgroundColor = color;
+        if (usesDarkText(color)) {
+          band.style.setProperty('--ink', DARK_INK);
+          // a soft halo in the band's own colour lifts dark letters off the dark cat picture
+          band.style.setProperty('--shadow', '0 0 3px ' + color + ', 0 0 6px ' + color + ', 0 0 10px ' + color);
+        } else {
+          band.style.removeProperty('--ink');
+          band.style.removeProperty('--shadow');
+        }
+      });
+      document.body.classList.add('palette-custom');
+      resetButton.hidden = false;
+    }
+
+    function resetPalette() {
+      Array.prototype.forEach.call(loop.children, function (band) {
+        band.style.removeProperty('background-color');
+        band.style.removeProperty('--ink');
+        band.style.removeProperty('--shadow');
+      });
+      document.body.classList.remove('palette-custom');
+      resetButton.hidden = true;
+      try { localStorage.removeItem(STORAGE_KEY); } catch (e) {}
+    }
+
+    function isValid(saved) {
+      return saved && Array.isArray(saved.colors) && Array.isArray(saved.seq) &&
+        saved.seq.length === BANDS_PER_SET &&
+        saved.colors.every(function (c) { return /^#[0-9a-f]{6}$/i.test(c); }) &&
+        saved.seq.every(function (n) { return n >= 0 && n < saved.colors.length; });
+    }
 
     swapButton.addEventListener('click', function () {
-      setPalette(!document.body.classList.contains('palette-shoes'));
+      var colors = makePalette();
+      var seq = makeSequence(colors.length);
+      applyPalette(colors, seq);
+      try { localStorage.setItem(STORAGE_KEY, JSON.stringify({ colors: colors, seq: seq })); } catch (e) {}
     });
+    resetButton.addEventListener('click', resetPalette);
+
+    // restore the last palette instantly (no fade from the original colours on page load)
+    try {
+      var saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
+      if (isValid(saved)) {
+        loop.classList.add('no-transition');
+        applyPalette(saved.colors, saved.seq);
+        void loop.offsetHeight; // flush styles while transitions are off
+        loop.classList.remove('no-transition');
+      }
+    } catch (e) {}
   }
 
   // 4. "scroll" link: glide to the top, then all the way back down
