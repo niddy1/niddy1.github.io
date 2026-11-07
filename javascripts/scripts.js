@@ -63,8 +63,8 @@
   // the spacebar on coolors.co, but generated right here, no outside service).
   // Each palette is built from a colour-wheel "harmony" (analogous, complementary,
   // triad...) with a spread of light and dark, so the colours go together.
-  // Nothing is saved: refreshing the page brings back the default (shoe) colours from
-  // styles.css.
+  // Nothing is saved: every page load starts from the six-colour default (set at the bottom of
+  // this block) in a new random order.
   var swapButton = document.getElementById('color-swap');
   if (swapButton) {
     var DARK_INK = '#1B2A2D';      // text colour used on light bands
@@ -162,6 +162,14 @@
       var colors = makePalette();
       applyPalette(colors, makeOrder(colors.length));
     });
+
+    // The default look: these six colours, in a new random order on every page load or refresh.
+    // Applied instantly (transitions off) so there's no fade from the stylesheet's fallback colours.
+    var DEFAULT_PALETTE = ['#E33090', '#06B8C1', '#FBD40A', '#EBEDEC', '#F88480', '#215575'];
+    loop.classList.add('no-transition');
+    applyPalette(DEFAULT_PALETTE, makeOrder(DEFAULT_PALETTE.length));
+    void loop.offsetHeight; // flush styles while transitions are off
+    loop.classList.remove('no-transition');
   }
 
   // 4. "scroll" link: glide to the top, then all the way back down
