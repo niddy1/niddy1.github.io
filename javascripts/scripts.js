@@ -63,8 +63,8 @@
   // the spacebar on coolors.co, but generated right here, no outside service).
   // Each palette is built from a colour-wheel "harmony" (analogous, complementary,
   // triad...) with a spread of light and dark, so the colours go together.
-  // Nothing is saved: every page load starts from the six-colour default (set at the bottom of
-  // this block) in a new random order.
+  // Nothing is saved: every page load starts from the same six-colour default (set at the
+  // bottom of this block), in the same order.
   var swapButton = document.getElementById('color-swap');
   if (swapButton) {
     var DARK_INK = '#1B2A2D';      // text colour used on light bands
@@ -163,11 +163,14 @@
       applyPalette(colors, makeOrder(colors.length));
     });
 
-    // The default look: these six colours, in a new random order on every page load or refresh.
-    // Applied instantly (transitions off) so there's no fade from the stylesheet's fallback colours.
-    var DEFAULT_PALETTE = ['#E33090', '#06B8C1', '#FBD40A', '#EBEDEC', '#F88480', '#215575'];
+    // The default look: these six colours, always in this order (pink, yellow, teal, coral,
+    // deep blue, light gray), repeating down the page. Refreshing always brings this back;
+    // "Swap colors" is what changes it. Applied instantly (transitions off) so there's no fade
+    // from the stylesheet's fallback colours.
+    var DEFAULT_PALETTE = ['#E33090', '#FBD40A', '#06B8C1', '#F88480', '#215575', '#EBEDEC'];
+    var DEFAULT_ORDER = [0, 1, 2, 3, 4, 5];
     loop.classList.add('no-transition');
-    applyPalette(DEFAULT_PALETTE, makeOrder(DEFAULT_PALETTE.length));
+    applyPalette(DEFAULT_PALETTE, DEFAULT_ORDER);
     void loop.offsetHeight; // flush styles while transitions are off
     loop.classList.remove('no-transition');
   }
