@@ -67,7 +67,6 @@
   // styles.css.
   var swapButton = document.getElementById('color-swap');
   if (swapButton) {
-    var BANDS_PER_SET = 17;        // the blocks in index.html before the page repeats
     var DARK_INK = '#1B2A2D';      // text colour used on light bands
     var WHITE_INK = '#ffffff';     // text colour used on dark bands (same look as the stylesheet default)
     var WHITE_SHADOW = '0 3px 0 rgba(0, 0, 0, 0.5)';
@@ -117,18 +116,14 @@
       });
     }
 
-    // which palette colour goes on which band: random, but never the same colour on two
-    // neighbouring bands, including where the page loops from the last band back to the first
-    function makeSequence(colorCount) {
-      var seq = [];
-      for (var i = 0; i < BANDS_PER_SET; i++) {
-        var pick;
-        do {
-          pick = Math.floor(Math.random() * colorCount);
-        } while (i > 0 && pick === seq[i - 1] || i === BANDS_PER_SET - 1 && pick === seq[0]);
-        seq.push(pick);
-      }
-      return seq;
+    // The order the palette's colours run down the page, in a random order each time.
+    // The five colours cycle (A B C D E, A B C D E ...) without a break, so a colour never
+    // repeats within any five bands in a row, and never shows up on both sides of another.
+    // (With exactly five colours that rule can only be met by cycling in a fixed order.)
+    function makeOrder(colorCount) {
+      var order = [];
+      for (var i = 0; i < colorCount; i++) order.push(i);
+      return shuffle(order);
     }
 
     function luminance(hex) {
@@ -144,9 +139,11 @@
       return 1.05 / (luminance(hex) + 0.05) < 3;
     }
 
-    function applyPalette(colors, seq) {
+    function applyPalette(colors, order) {
       Array.prototype.forEach.call(loop.children, function (band, index) {
-        var color = colors[seq[index % BANDS_PER_SET]];
+        // index counts straight down the whole page (all repeats of the blocks), so the
+        // cycle doesn't restart or break where the page loops
+        var color = colors[order[index % order.length]];
         band.style.backgroundColor = color;
         // always set both explicitly: the default light bands get dark text from the
         // stylesheet, so a dark generated colour has to say "white" itself
@@ -163,7 +160,7 @@
 
     swapButton.addEventListener('click', function () {
       var colors = makePalette();
-      applyPalette(colors, makeSequence(colors.length));
+      applyPalette(colors, makeOrder(colors.length));
     });
   }
 
