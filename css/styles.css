@@ -178,7 +178,10 @@ p {
     border: 0;
   }
 
-  .blocks::before {
+  /* Only blocks marked .is-near (on or just off screen, set in scripts.js) get
+     the picture layer. Each layer is as big as the screen, and giving all 68
+     blocks one at once made iPhone Safari run out of memory and crash. */
+  .blocks.is-near::before {
     content: '';
     position: fixed;
     top: 0;

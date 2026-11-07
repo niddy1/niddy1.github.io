@@ -32,6 +32,21 @@
     });
   }
 
+  // Phones: mark the blocks that are on (or just off) the screen. The CSS only
+  // draws the fixed picture layer for these, so at most a few exist at once.
+  // Without this every block had one and iPhone Safari ran out of memory.
+  var allBlocks = loop.querySelectorAll('.blocks');
+  if ('IntersectionObserver' in window) {
+    var nearObserver = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        entry.target.classList.toggle('is-near', entry.isIntersecting);
+      });
+    }, { rootMargin: '100px 0px' });
+    Array.prototype.forEach.call(allBlocks, function (block) {
+      nearObserver.observe(block);
+    });
+  }
+
   // 3. Desktop: hover (or keyboard focus) a link to slide its description in
   Array.prototype.forEach.call(loop.querySelectorAll('[data-desc]'), function (link) {
     var panel = document.getElementById('desc-' + link.getAttribute('data-desc'));
