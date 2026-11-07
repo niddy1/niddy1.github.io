@@ -56,6 +56,7 @@ p {
   align-items: center;
   justify-content: center;
   padding: 0 12px;
+  background-image: var(--bg);
   background-position: 50% 55%;
   background-attachment: fixed;
   background-repeat: no-repeat;
@@ -68,23 +69,25 @@ p {
   border-top: black 10px solid;
 }
 
-.block-1    { background-color: #EBE1C4; background-image: url('images/1.png'); }
-.block-2    { background-color: #667799; background-image: url('images/2.png'); }
-.block-3    { background-color: #D8D3DE; background-image: url('images/3.png'); }
-.block-4    { background-color: #7a9460; background-image: url('images/4.png'); }
-.block-5    { background-color: #dd9977; background-image: url('images/5.png'); }
-.block-6    { background-color: #665566; background-image: url('images/6.png'); }
-.block-7    { background-color: #223333; background-image: url('images/7.png'); }
-.block-8    { background-color: #9EA5AA; background-image: url('images/8.png'); }
-.block-8-5  { background-color: #5C4742; background-image: url('images/8.png'); }
-.block-9    { background-color: #D8D3DE; background-image: url('images/9.png'); }
-.block-10   { background-color: #7a9460; background-image: url('images/10.png'); }
-.block-11   { background-color: #667799; background-image: url('images/11.png'); }
-.block-12   { background-color: #B3C5C5; background-image: url('images/12.png'); }
-.block-13   { background-color: #EBE1C4; background-image: url('images/13.png'); }
-.block-14   { background-color: #667799; background-image: url('images/14.png'); }
-.block-15   { background-color: #EBDBD0; background-image: url('images/15.png'); }
-.block-16   { background-color: #7a9460; background-image: url('images/16.png'); }
+/* Each block's colour and picture. The picture lives in --bg so the same
+   image can be used by the desktop and the phone version of the effect. */
+.block-1    { background-color: #EBE1C4; --bg: url('images/1.png'); }
+.block-2    { background-color: #667799; --bg: url('images/2.png'); }
+.block-3    { background-color: #D8D3DE; --bg: url('images/3.png'); }
+.block-4    { background-color: #7a9460; --bg: url('images/4.png'); }
+.block-5    { background-color: #dd9977; --bg: url('images/5.png'); }
+.block-6    { background-color: #665566; --bg: url('images/6.png'); }
+.block-7    { background-color: #223333; --bg: url('images/7.png'); }
+.block-8    { background-color: #9EA5AA; --bg: url('images/8.png'); }
+.block-8-5  { background-color: #5C4742; --bg: url('images/8.png'); }
+.block-9    { background-color: #D8D3DE; --bg: url('images/9.png'); }
+.block-10   { background-color: #7a9460; --bg: url('images/10.png'); }
+.block-11   { background-color: #667799; --bg: url('images/11.png'); }
+.block-12   { background-color: #B3C5C5; --bg: url('images/12.png'); }
+.block-13   { background-color: #EBE1C4; --bg: url('images/13.png'); }
+.block-14   { background-color: #667799; --bg: url('images/14.png'); }
+.block-15   { background-color: #EBDBD0; --bg: url('images/15.png'); }
+.block-16   { background-color: #7a9460; --bg: url('images/16.png'); }
 
 
 /* ---------- Footer ---------- */
@@ -160,13 +163,62 @@ p {
     display: block;
   }
 
+  /* iPhones ignore "background-attachment: fixed", which is what makes the
+     picture stay put while the coloured bands slide over it on desktop.
+     Same effect, done a way iOS supports: the picture is a screen-sized
+     fixed layer (::before) and each block clips it to its own edges. */
   .blocks {
     height: auto;
-    min-height: 350px;
-    padding: 24px 12px;
-    /* "fixed" backgrounds are unreliable on phones */
-    background-attachment: scroll;
-    background-size: contain;
+    min-height: max(350px, 45vh);
+    padding: 24px 22px;
+    background-image: none;
+    -webkit-clip-path: inset(0);
+    clip-path: inset(0);
+    /* the black side borders move to ::after so the picture can't cover them */
+    border: 0;
+  }
+
+  .blocks::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100vh;
+    height: 100lvh; /* steady size even when Safari's toolbar shows/hides */
+    z-index: 0;
+    pointer-events: none;
+    background-image: var(--bg);
+    background-position: 50% 55%;
+    background-repeat: no-repeat;
+    background-size: auto 50%;
+  }
+
+  .blocks::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 2;
+    pointer-events: none;
+    border-left: 10px solid black;
+    border-right: 10px solid black;
+  }
+
+  .first-block {
+    border-top: 0;
+  }
+  .first-block::after {
+    border-top: 10px solid black;
+  }
+
+  /* keep the text above the picture layer */
+  .blocks > p,
+  .blocks > .block-desc {
+    position: relative;
+    z-index: 1;
   }
 }
 
