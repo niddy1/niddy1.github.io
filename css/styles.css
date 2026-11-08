@@ -136,6 +136,13 @@ p {
   gap: 10px;
   max-width: calc(100vw - 32px);
 }
+#swap-controls {
+  transition: opacity 200ms ease;
+}
+#swap-controls.is-tucked {
+  opacity: 0;
+  pointer-events: none;
+}
 #swap-controls button {
   /* skeleton.css styles <button>; reset what we don't want from it */
   height: auto;
@@ -179,8 +186,7 @@ p {
   position: relative;
   width: 100%;
   min-height: 150px;
-  /* extra room at the bottom so the fixed swap buttons never cover the "scroll" link */
-  padding: 24px 16px 110px;
+  padding: 24px 16px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -190,7 +196,7 @@ p {
 }
 .last-block p {
   line-height: 1.3;
-  font-size: clamp(22px, 5.5vw, 48px);
+  font-size: clamp(22px, 5.5vw, 42px);
 }
 
 .top-link {

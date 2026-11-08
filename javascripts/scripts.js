@@ -175,6 +175,16 @@
     loop.classList.remove('no-transition');
   }
 
+  // Tuck the swap button away while the black footer is on screen, so it never covers the
+  // "scroll" link and the footer can stay short.
+  var swapControls = document.getElementById('swap-controls');
+  var footer = document.querySelector('.last-block');
+  if (swapControls && footer && 'IntersectionObserver' in window) {
+    new IntersectionObserver(function (entries) {
+      swapControls.classList.toggle('is-tucked', entries[0].isIntersecting);
+    }).observe(footer);
+  }
+
   // 4. "scroll" link: glide to the top, then all the way back down
   var scrollRun = 0; // bumped to cancel a run in progress
 
