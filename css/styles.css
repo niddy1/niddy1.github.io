@@ -50,9 +50,47 @@ p {
 }
 .blocks a {
   color: inherit;
+  /* inline-block so the hover wiggle can tilt it; the underline is tiled one strip per line so a
+     link that wraps onto two lines still gets an underline on both */
+  display: inline-block;
+  line-height: 1.2;
+  background-image: linear-gradient(to bottom, transparent 0, transparent calc(100% - 0.14em - 3px),
+    currentColor calc(100% - 0.14em - 3px), currentColor calc(100% - 0.14em), transparent calc(100% - 0.14em));
+  background-size: 100% 1.2em;
+  background-repeat: repeat-y;
+  background-position: 0 0;
 }
 .blocks a:hover {
   color: black;
+  background-image: none;
+}
+/* Fun: links do a little wiggle when you hover them (mouse devices only) */
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .blocks a:hover {
+    animation: link-wiggle 450ms ease-out forwards;
+  }
+}
+@keyframes link-wiggle {
+  0%   { transform: rotate(0) scale(1); }
+  25%  { transform: rotate(-4deg) scale(1.08); }
+  50%  { transform: rotate(3deg) scale(1.08); }
+  75%  { transform: rotate(-2deg) scale(1.06); }
+  100% { transform: rotate(-1deg) scale(1.05); }
+}
+
+/* Fun: click a band and its text does a quick bounce while the cats re-deal */
+.blocks {
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.blocks p.is-bounced {
+  animation: band-bounce 380ms ease-out;
+}
+@keyframes band-bounce {
+  0%   { transform: scale(1); }
+  35%  { transform: scale(1.07) rotate(-1.5deg); }
+  70%  { transform: scale(0.98) rotate(1deg); }
+  100% { transform: scale(1); }
 }
 
 
@@ -170,6 +208,18 @@ p {
     border-color: yellow;
   }
 }
+/* the "space" key hint is only shown where there's a keyboard-ish pointer */
+.key-hint {
+  margin-left: 6px;
+  padding: 0 5px;
+  font-size: 12px;
+  border: 1px solid currentColor;
+  border-radius: 3px;
+  opacity: 0.75;
+}
+@media (hover: none) {
+  .key-hint { display: none; }
+}
 #swap-controls button:active {
   color: black;
   background-color: yellow;
@@ -191,7 +241,6 @@ p {
   align-items: center;
   justify-content: center;
   background-color: black;
-  overflow: hidden;
   color: yellow;
 }
 .last-block p {
@@ -201,6 +250,37 @@ p {
 
 .top-link {
   color: yellow;
+}
+
+/* Fun: the cat that peeks up out of the footer. .footer-peek is a window sitting just above
+   the footer's top edge; the cat (frame 11, cropped to the head) slides up into it. */
+.footer-peek {
+  position: absolute;
+  left: max(24px, 14%);
+  bottom: 100%;
+  width: 126px;
+  height: 112px;
+  overflow: hidden;
+  pointer-events: none;
+}
+.footer-cat {
+  width: 126px;
+  height: 144px;
+  background: url('images/11.png') -117px -9px / 300px 300px no-repeat;
+  transform: translateY(100%);
+  transition: transform 550ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.last-block.is-peeking .footer-cat {
+  transform: translateY(0);
+  animation: cat-bob 2.8s ease-in-out 700ms infinite;
+}
+@keyframes cat-bob {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(10px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .footer-cat { transition: none; }
+  .last-block.is-peeking .footer-cat { animation: none; }
 }
 
 
@@ -296,6 +376,11 @@ p {
     pointer-events: none;
     border-left: 10px solid black;
     border-right: 10px solid black;
+  }
+
+  /* leave room under the last band for the footer cat that peeks up over it */
+  #loop > .blocks:last-child {
+    padding-bottom: 130px;
   }
 
   .first-block {

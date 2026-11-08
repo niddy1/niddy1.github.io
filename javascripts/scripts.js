@@ -1,4 +1,4 @@
-// No jQuery needed. This file does four things:
+// No jQuery needed. This file does these things (plus a few small bits of fun, marked below):
 //   1. copies each project description into its block (for phones, where there is no hover)
 //   2. repeats the blocks so the page loops
 //   3. slides the description panel in/out on desktop hover
@@ -22,12 +22,28 @@
     link.closest('.blocks').appendChild(inline);
   });
 
+  // Fun: on the repeated passes down the page, a couple of the plain-text bands sometimes say
+  // something sillier. The first pass is always the real text, and it's random on every load.
+  var SILLY_TEXT = {
+    'block-2': ['Web Developer (retired)', 'Cat Enthusiast', 'Professional Scroller', 'Not Looking For Work'],
+    'block-3': ['Probably Getting Pizza', 'Somewhere Near a Cat', 'Not Looking For Work']
+  };
+  function sillyText(block) {
+    Object.keys(SILLY_TEXT).forEach(function (cls) {
+      if (!block.classList.contains(cls) || Math.random() > 0.75) return;
+      var p = block.querySelector('p');
+      var options = SILLY_TEXT[cls];
+      if (p) p.textContent = options[Math.floor(Math.random() * options.length)];
+    });
+  }
+
   // 2. Repeat the blocks
   var originals = Array.prototype.slice.call(loop.children);
   for (var i = 0; i < LOOP_COPIES; i++) {
     originals.forEach(function (block) {
       var copy = block.cloneNode(true);
       copy.classList.remove('first-block');
+      sillyText(copy);
       loop.appendChild(copy);
     });
   }
@@ -163,6 +179,15 @@
       applyPalette(colors, makeOrder(colors.length));
     });
 
+    // Fun: the spacebar does the same thing as the button (like coolors.co). It stays out of
+    // the way when you're on a link or button, where space already means "press this".
+    window.addEventListener('keydown', function (e) {
+      if (e.key !== ' ' || e.repeat || e.ctrlKey || e.metaKey || e.altKey) return;
+      if (e.target && e.target.closest && e.target.closest('a, button, input, textarea, select, [contenteditable]')) return;
+      e.preventDefault();
+      swapButton.click();
+    });
+
     // The default look: these six colours, always in this order (pink, yellow, teal, coral,
     // deep blue, light gray), repeating down the page. Refreshing always brings this back;
     // "Swap colors" is what changes it. Applied instantly (transitions off) so there's no fade
@@ -173,6 +198,62 @@
     applyPalette(DEFAULT_PALETTE, DEFAULT_ORDER);
     void loop.offsetHeight; // flush styles while transitions are off
     loop.classList.remove('no-transition');
+  }
+
+  // Fun: click (or tap) a coloured band and the cats get dealt again. The 16 pictures are
+  // frames of one walking cat, so they're shifted along as a set (keeping the walk in order)
+  // instead of shuffled, which would stitch different cats together across neighbouring bands.
+  var CAT_FRAMES = [1, 2, 3, 4, 5, 6, 7, 8, 8, 9, 10, 11, 12, 13, 14, 15, 16]; // one per band type
+  var catShift = 0;
+  var catsPreloaded = null;
+
+  function catUrl(n) {
+    return 'url("' + new URL('css/images/' + n + '.png', document.baseURI).href + '")';
+  }
+  function preloadCats() {
+    if (!catsPreloaded) {
+      catsPreloaded = Promise.all(Array.prototype.map.call(new Set(CAT_FRAMES), function (n) {
+        return new Promise(function (resolve) {
+          var img = new Image();
+          img.onload = img.onerror = resolve;
+          img.src = new URL('css/images/' + n + '.png', document.baseURI).href;
+        });
+      }));
+    }
+    // never wait more than a moment, even on a slow connection
+    return Promise.race([catsPreloaded, new Promise(function (r) { setTimeout(r, 1200); })]);
+  }
+  function dealCats() {
+    var all = loop.querySelectorAll('.blocks');
+    Array.prototype.forEach.call(all, function (band, i) {
+      var frame = CAT_FRAMES[(i % CAT_FRAMES.length + catShift) % CAT_FRAMES.length];
+      band.style.setProperty('--bg', catUrl(frame));
+    });
+  }
+  loop.addEventListener('click', function (e) {
+    if (e.target.closest('a')) return;
+    var band = e.target.closest('.blocks');
+    if (!band) return;
+    var text = band.querySelector('p');
+    if (text && !reduceMotion) {
+      text.classList.remove('is-bounced');
+      void text.offsetWidth; // restart the animation if clicked again quickly
+      text.classList.add('is-bounced');
+    }
+    catShift = (catShift + 1 + Math.floor(Math.random() * (CAT_FRAMES.length - 1))) % CAT_FRAMES.length;
+    preloadCats().then(dealCats);
+  });
+  loop.addEventListener('animationend', function (e) {
+    if (e.animationName === 'band-bounce') e.target.classList.remove('is-bounced');
+  });
+
+  // Fun: at the very end of the page a cat peeks up out of the black footer. It rises when the
+  // footer comes into view and ducks back down when you leave, so it pops up again each time.
+  var footerEl = document.querySelector('.last-block');
+  if (footerEl && 'IntersectionObserver' in window) {
+    new IntersectionObserver(function (entries) {
+      footerEl.classList.toggle('is-peeking', entries[0].isIntersecting);
+    }, { threshold: 0.6 }).observe(footerEl);
   }
 
   // Tuck the swap button away while the black footer is on screen, so it never covers the

@@ -125,7 +125,7 @@
     <!-- "Swap colors" (see scripts.js): every click generates a new random 5-colour palette.
          Refreshing the page brings back the default colours. -->
     <div id="swap-controls">
-      <button type="button" id="color-swap">Swap colors</button>
+      <button type="button" id="color-swap">Swap colors <span class="key-hint" aria-hidden="true">space</span></button>
     </div>
 
     <!-- Blocks. This set is written once; scripts.js repeats it so the page
@@ -225,6 +225,8 @@
     </div>
 
     <div class="last-block">
+      <!-- a cat that peeks up over the top edge when you reach the end (see styles.css) -->
+      <div class="footer-peek" aria-hidden="true"><div class="footer-cat"></div></div>
       <p>
         I appreciate your commitment to the <a class="top-link" href="#top">scroll</a>
       </p>
