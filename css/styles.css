@@ -7,8 +7,10 @@ html, body {
 body {
   margin: 0;
   background-color: ghostwhite;
-  font-family: 'Inconsolata', monospace;
-  font-weight: 700;
+  /* --font / --weight are set by the "Swap text" button (scripts.js); without them it's
+     Inconsolata bold, as before. */
+  font-family: var(--font, 'Inconsolata', monospace);
+  font-weight: var(--weight, 700);
 }
 
 a {
@@ -40,6 +42,7 @@ p {
   margin: 0;
   text-align: center;
   color: var(--ink, white);
+  overflow-wrap: anywhere; /* very wide fonts wrap instead of pushing the page sideways */
 }
 .blocks a {
   color: inherit;
@@ -115,18 +118,30 @@ p {
 }
 
 
-/* ---------- Colour swap button ---------- */
+/* ---------- Swap buttons (colours + text) ---------- */
 
-#color-swap {
+#swap-controls {
   position: fixed;
   right: 16px;
   bottom: 16px;
   bottom: max(16px, env(safe-area-inset-bottom));
   z-index: 10;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 10px;
+  max-width: calc(100vw - 32px);
+}
+#swap-controls .swap-buttons {
+  display: flex;
+  gap: 10px;
+}
+#swap-controls button {
   /* skeleton.css styles <button>; reset what we don't want from it */
   height: auto;
   margin: 0;
   padding: 10px 16px;
+  /* the controls keep their own font so they don't change while you test fonts */
   font-family: 'Inconsolata', monospace;
   font-size: 16px;
   font-weight: 700;
@@ -138,24 +153,36 @@ p {
   border: 2px solid yellow;
   border-radius: 0;
   cursor: pointer;
-  /* thin black edge so the button never blends into a yellow band */
+  /* thin black edge so a button never blends into a yellow band */
   box-shadow: 0 0 0 2px black;
 }
 /* only on devices that can really hover, so it doesn't stay "stuck" after a tap on a phone */
 @media (hover: hover) {
-  #color-swap:hover {
+  #swap-controls button:hover {
     color: black;
     background-color: yellow;
     border-color: yellow;
   }
 }
-#color-swap:active {
+#swap-controls button:active {
   color: black;
   background-color: yellow;
 }
-#color-swap:focus-visible {
+#swap-controls button:focus-visible {
   outline: 3px solid white;
   outline-offset: 2px;
+}
+/* shows which font "Swap text" is on */
+#font-name {
+  padding: 4px 10px;
+  font-family: 'Inconsolata', monospace;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.3;
+  text-align: right;
+  color: yellow;
+  background-color: black;
+  box-shadow: 0 0 0 2px black;
 }
 
 
@@ -166,7 +193,8 @@ p {
   position: relative;
   width: 100%;
   min-height: 150px;
-  padding: 24px 16px;
+  /* extra room at the bottom so the fixed swap buttons never cover the "scroll" link */
+  padding: 24px 16px 110px;
   display: flex;
   align-items: center;
   justify-content: center;

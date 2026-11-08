@@ -175,6 +175,97 @@
     loop.classList.remove('no-transition');
   }
 
+  // Swap text: each click switches the font on the whole page (the blocks, the project
+  // descriptions and the footer) to the next one in FONTS, so you can try a bunch and pick a
+  // favourite. The current font's name shows next to the buttons. Shift-click goes back one.
+  // Nothing is saved: a refresh is back to Inconsolata.
+  //
+  // The fonts come from Google Fonts and each one is only fetched when you get to it (one
+  // stylesheet per font, so a typo in one can't break the others). If a font doesn't load, the
+  // label says so and the page keeps the font it had, rather than quietly showing a fallback.
+  var fontButton = document.getElementById('font-swap');
+  var fontLabel = document.getElementById('font-name');
+  if (fontButton && fontLabel) {
+    // name = the Google Fonts family name; query = how it's written in the Google Fonts URL;
+    // weight = the one to use (fonts that only come in regular use 400, since fake bold looks bad)
+    var FONTS = [
+      { name: 'Inconsolata',      query: null,                              fallback: 'monospace',  weight: 700 }, // what the site already uses
+      { name: 'Space Mono',       query: 'Space+Mono:wght@400;700',         fallback: 'monospace',  weight: 700 },
+      { name: 'IBM Plex Mono',    query: 'IBM+Plex+Mono:wght@400;700',      fallback: 'monospace',  weight: 700 },
+      { name: 'Courier Prime',    query: 'Courier+Prime:wght@400;700',      fallback: 'monospace',  weight: 700 },
+      { name: 'Space Grotesk',    query: 'Space+Grotesk:wght@400;700',      fallback: 'sans-serif', weight: 700 },
+      { name: 'Syne',             query: 'Syne:wght@400;700',               fallback: 'sans-serif', weight: 700 },
+      { name: 'Unbounded',        query: 'Unbounded:wght@400;700',          fallback: 'sans-serif', weight: 700 },
+      { name: 'Fredoka',          query: 'Fredoka:wght@400;700',            fallback: 'sans-serif', weight: 700 },
+      { name: 'Oswald',           query: 'Oswald:wght@400;700',             fallback: 'sans-serif', weight: 700 },
+      { name: 'Bebas Neue',       query: 'Bebas+Neue',                      fallback: 'sans-serif', weight: 400 },
+      { name: 'Archivo Black',    query: 'Archivo+Black',                   fallback: 'sans-serif', weight: 400 },
+      { name: 'Righteous',        query: 'Righteous',                       fallback: 'sans-serif', weight: 400 },
+      { name: 'Playfair Display', query: 'Playfair+Display:wght@400;700',   fallback: 'serif',      weight: 700 },
+      { name: 'DM Serif Display', query: 'DM+Serif+Display',                fallback: 'serif',      weight: 400 },
+      { name: 'Abril Fatface',    query: 'Abril+Fatface',                   fallback: 'serif',      weight: 400 },
+      { name: 'Special Elite',    query: 'Special+Elite',                   fallback: 'monospace',  weight: 400 },
+      { name: 'Pacifico',         query: 'Pacifico',                        fallback: 'cursive',    weight: 400 },
+      { name: 'Lobster',          query: 'Lobster',                         fallback: 'cursive',    weight: 400 },
+      { name: 'Permanent Marker', query: 'Permanent+Marker',                fallback: 'cursive',    weight: 400 },
+      { name: 'Press Start 2P',   query: 'Press+Start+2P',                  fallback: 'monospace',  weight: 400 },
+      { name: 'Monoton',          query: 'Monoton',                         fallback: 'sans-serif', weight: 400 }
+    ];
+
+    var target = 0;      // the font the last click asked for
+    var shown = 0;       // the font actually showing on the page
+    var requestId = 0;   // lets a newer click cancel an older one that's still loading
+    var fontRequests = {}; // name -> Promise, so each font is only requested once
+
+    function familyOf(f) { return "'" + f.name + "', " + f.fallback; }
+
+    // Fetch one font and wait until the browser really has it. Resolves true or false.
+    function loadFont(f) {
+      if (fontRequests[f.name]) return fontRequests[f.name];
+      fontRequests[f.name] = new Promise(function (resolve) {
+        function whenStylesheetIsIn() {
+          var timer = setTimeout(function () { resolve(false); }, 5000); // give up after 5s
+          document.fonts.load(f.weight + ' 1em "' + f.name + '"', 'Ian Andreu 0123456789').then(
+            function (faces) { clearTimeout(timer); resolve(faces.length > 0); },
+            function () { clearTimeout(timer); resolve(false); }
+          );
+        }
+        if (!f.query) { resolve(true); return; } // already loaded by index.html
+        var link = document.createElement('link');
+        link.rel = 'stylesheet';
+        link.href = 'https://fonts.googleapis.com/css2?family=' + f.query + '&display=swap';
+        link.onload = whenStylesheetIsIn;
+        link.onerror = function () { resolve(false); };
+        document.head.appendChild(link);
+      });
+      return fontRequests[f.name];
+    }
+
+    function showFont(index) {
+      var f = FONTS[index];
+      var thisRequest = ++requestId;
+      fontLabel.textContent = 'Font: ' + f.name + (f.query ? ' …' : ''); // "…" while it loads
+      loadFont(f).then(function (ok) {
+        if (thisRequest !== requestId) return; // a newer click took over
+        if (ok) {
+          document.body.style.setProperty('--font', familyOf(f));
+          document.body.style.setProperty('--weight', String(f.weight));
+          shown = index;
+          fontLabel.textContent = 'Font: ' + f.name;
+          loadFont(FONTS[(index + 1) % FONTS.length]); // warm up the next one so the next click is quick
+        } else {
+          fontLabel.textContent = f.name + " didn't load. Still showing " + FONTS[shown].name;
+        }
+      });
+    }
+
+    fontButton.addEventListener('click', function (e) {
+      var step = e.shiftKey ? -1 : 1;
+      target = (target + step + FONTS.length) % FONTS.length;
+      showFont(target);
+    });
+  }
+
   // 4. "scroll" link: glide to the top, then all the way back down
   var scrollRun = 0; // bumped to cancel a run in progress
 

@@ -122,9 +122,17 @@
     </div>
 
 
-    <!-- Colour swap: every click generates a new random 5-colour palette (see scripts.js).
-         Refreshing the page brings back the default colours. -->
-    <button type="button" id="color-swap">Swap colors</button>
+    <!-- Swap buttons (see scripts.js). Refreshing the page brings back the defaults.
+         "Swap colors": every click generates a new random 5-colour palette.
+         "Swap text": every click tries the next font in a list (shift-click goes back one);
+         #font-name shows which font is showing. -->
+    <div id="swap-controls">
+      <div id="font-name" aria-live="polite">Font: Inconsolata</div>
+      <div class="swap-buttons">
+        <button type="button" id="font-swap">Swap text</button>
+        <button type="button" id="color-swap">Swap colors</button>
+      </div>
+    </div>
 
     <!-- Blocks. This set is written once; scripts.js repeats it so the page
          loops a few times, which keeps the "commitment to the scroll" joke. -->
