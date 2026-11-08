@@ -17,7 +17,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/skeleton/2.0.4/skeleton.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css?family=Inconsolata:700,400&display=swap" rel="stylesheet" type="text/css">
+    <link href="https://fonts.googleapis.com/css2?family=Righteous&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/styles.css">
     <script src="javascripts/scripts.js" defer></script>
   </head>
@@ -122,16 +122,10 @@
     </div>
 
 
-    <!-- Swap buttons (see scripts.js). Refreshing the page brings back the defaults.
-         "Swap colors": every click generates a new random 5-colour palette.
-         "Swap text": every click tries the next font in a list (shift-click goes back one);
-         #font-name shows which font is showing. -->
+    <!-- "Swap colors" (see scripts.js): every click generates a new random 5-colour palette.
+         Refreshing the page brings back the default colours. -->
     <div id="swap-controls">
-      <div id="font-name" aria-live="polite">Font: Inconsolata</div>
-      <div class="swap-buttons">
-        <button type="button" id="font-swap">Swap text</button>
-        <button type="button" id="color-swap">Swap colors</button>
-      </div>
+      <button type="button" id="color-swap">Swap colors</button>
     </div>
 
     <!-- Blocks. This set is written once; scripts.js repeats it so the page
