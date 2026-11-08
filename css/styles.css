@@ -12,19 +12,18 @@ body {
 }
 
 a {
-  /* The underline is a thin background strip in the text's own colour (not text-decoration or a
-     border): text-decoration picked up the text's drop shadow, which looked doubled on the dark
-     bands, and a border sat far below the letters. */
+  /* The underline is a border on a line-height-1.2 box (so it sits right under the letters, not
+     way down at the bottom of a tall line) and in the text's own colour. A border can't pick up
+     the text's drop shadow and stays crisp on phone screens. */
+  display: inline-block;
+  line-height: 1.2;
   padding: 0 3px;
   color: white;
-  background-image: linear-gradient(currentColor, currentColor);
-  background-repeat: no-repeat;
-  background-size: 100% 3px;
-  background-position: 0 calc(100% - 0.14em);
+  border-bottom: 3px solid currentColor;
   text-decoration: none;
 }
 a:hover {
-  background-image: none;
+  border-bottom-color: transparent;
   background-color: rgba(255, 248, 248, 0.8);
   text-shadow: none;
   color: black;
@@ -50,19 +49,9 @@ p {
 }
 .blocks a {
   color: inherit;
-  /* inline-block so the hover wiggle can tilt it; the underline is tiled one strip per line so a
-     link that wraps onto two lines still gets an underline on both */
-  display: inline-block;
-  line-height: 1.2;
-  background-image: linear-gradient(to bottom, transparent 0, transparent calc(100% - 0.14em - 3px),
-    currentColor calc(100% - 0.14em - 3px), currentColor calc(100% - 0.14em), transparent calc(100% - 0.14em));
-  background-size: 100% 1.2em;
-  background-repeat: repeat-y;
-  background-position: 0 0;
 }
 .blocks a:hover {
   color: black;
-  background-image: none;
 }
 /* Fun: links do a little wiggle when you hover them (mouse devices only) */
 @media (hover: hover) and (prefers-reduced-motion: no-preference) {
