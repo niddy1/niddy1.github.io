@@ -12,19 +12,21 @@ body {
 }
 
 a {
-  /* underline drawn as text-decoration so it hugs the letters (a border sat far below them) */
-  text-decoration: underline;
-  text-decoration-color: black;
-  text-decoration-thickness: 3px;
-  text-underline-offset: 0.12em;
-  text-decoration-skip-ink: none;
+  /* The underline is a thin background strip in the text's own colour (not text-decoration or a
+     border): text-decoration picked up the text's drop shadow, which looked doubled on the dark
+     bands, and a border sat far below the letters. */
   padding: 0 3px;
   color: white;
+  background-image: linear-gradient(currentColor, currentColor);
+  background-repeat: no-repeat;
+  background-size: 100% 3px;
+  background-position: 0 calc(100% - 0.14em);
+  text-decoration: none;
 }
 a:hover {
+  background-image: none;
   background-color: rgba(255, 248, 248, 0.8);
   text-shadow: none;
-  text-decoration: none;
   color: black;
   opacity: 50%;
   transition-duration: 1000ms;
@@ -193,7 +195,6 @@ p {
 
 .top-link {
   color: yellow;
-  text-decoration-color: yellow;
 }
 
 
