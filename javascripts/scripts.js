@@ -479,6 +479,79 @@
     });
   }
 
+  // Fun: tap the right arrow key 3 times and a pixel cat runs in along the bottom of the screen.
+  // Holding an arrow key keeps him running (he loops round the screen); the left arrow turns him
+  // round to run the other way. Let go and he finishes crossing and leaves.
+  var runner = document.getElementById('runner');
+  if (runner) {
+    var rightTaps = 0;
+    var tapTimer = null;
+    var running = false;
+    var runDir = 1;      // 1 = running right, -1 = running left
+    var heldDir = 0;     // which arrow key is held down right now (0 = none)
+    var runX = 0;
+    var runWidth = 0;
+    var lastFrame = 0;
+
+    var runnerTick = function (now) {
+      if (!running) return;
+      var dt = Math.min(0.05, (now - lastFrame) / 1000);
+      lastFrame = now;
+      runX += runDir * runWidth * 1.5 * dt; // about one and a half cat-lengths per second
+      var screenW = window.innerWidth;
+      if (runDir > 0 && runX > screenW) {
+        if (heldDir === 1) { runX = -runWidth; } else { stopRunner(); return; }
+      } else if (runDir < 0 && runX < -runWidth) {
+        if (heldDir === -1) { runX = screenW; } else { stopRunner(); return; }
+      }
+      runner.style.transform = 'translateX(' + runX.toFixed(1) + 'px)';
+      requestAnimationFrame(runnerTick);
+    };
+    var turnRunner = function (dir) {
+      runDir = dir;
+      runner.classList.toggle('is-left', dir < 0);
+    };
+    var startRunner = function () {
+      running = true;
+      runner.hidden = false;
+      runWidth = runner.offsetWidth;
+      turnRunner(1);
+      runX = -runWidth;
+      runner.style.transform = 'translateX(' + runX + 'px)';
+      lastFrame = performance.now();
+      requestAnimationFrame(runnerTick);
+    };
+    var stopRunner = function () {
+      running = false;
+      runner.hidden = true;
+    };
+
+    window.addEventListener('keydown', function (e) {
+      if (e.ctrlKey || e.metaKey || e.altKey || e.shiftKey) return;
+      var dir = e.key === 'ArrowRight' ? 1 : (e.key === 'ArrowLeft' ? -1 : 0);
+      if (!dir) return;
+      if (running) {
+        heldDir = dir;
+        turnRunner(dir);
+        return;
+      }
+      if (dir !== 1 || e.repeat) return; // only fresh right-arrow taps call him
+      rightTaps++;
+      clearTimeout(tapTimer);
+      tapTimer = setTimeout(function () { rightTaps = 0; }, 1400);
+      if (rightTaps >= 3) {
+        rightTaps = 0;
+        heldDir = 1;
+        startRunner();
+      }
+    });
+    window.addEventListener('keyup', function (e) {
+      var dir = e.key === 'ArrowRight' ? 1 : (e.key === 'ArrowLeft' ? -1 : 0);
+      if (dir && heldDir === dir) heldDir = 0;
+    });
+    window.addEventListener('blur', function () { heldDir = 0; }); // key-up can get lost if you switch windows
+  }
+
   // Fun: at the very end of the page a cat peeks up out of the black footer. It rises when the
   // footer comes into view and ducks back down when you leave, so it pops up again each time.
   var footerEl = document.querySelector('.last-block');
