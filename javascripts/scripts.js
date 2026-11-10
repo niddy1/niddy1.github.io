@@ -296,6 +296,150 @@
 
   // Fun: after 10 clicks (anywhere that isn't a link or a button) Mookie drops in from the top of
   // the screen under a spotlight and blesses you. Click again, press Escape, or wait to close it.
+  // The holy sound is made right in the browser (Web Audio), so there's no sound file to host:
+  // a slow choir-like chord swell (three chords, D -> G -> D) with a deep organ-ish note under it,
+  // a bell strike when Mookie lands, and a few sparkling high bells. ~14 seconds, in step with the
+  // drop-in. It can only start from a click, which is exactly how Mookie is triggered.
+  // HOLY-SOUND-BEGIN
+  function buildHolySound(ctx, out, t0) {
+    var sources = [];
+    function hz(midi) { return 440 * Math.pow(2, (midi - 69) / 12); }
+
+    // a big, soft room
+    var reverb = ctx.createConvolver();
+    var len = Math.floor(ctx.sampleRate * 3.6);
+    var ir = ctx.createBuffer(2, len, ctx.sampleRate);
+    for (var ch = 0; ch < 2; ch++) {
+      var data = ir.getChannelData(ch);
+      for (var i = 0; i < len; i++) data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 2.6);
+    }
+    reverb.buffer = ir;
+    var wet = ctx.createGain(); wet.gain.value = 0.9;
+    reverb.connect(wet); wet.connect(out);
+    var dry = ctx.createGain(); dry.gain.value = 0.5;
+    dry.connect(out);
+    function toRoom(node) { node.connect(dry); node.connect(reverb); }
+
+    function envelope(g, start, dur, peak, attack, release) {
+      g.gain.setValueAtTime(0.0001, t0 + start);
+      g.gain.exponentialRampToValueAtTime(peak, t0 + start + attack);
+      g.gain.setValueAtTime(peak, t0 + start + dur - release);
+      g.gain.exponentialRampToValueAtTime(0.0001, t0 + start + dur);
+    }
+
+    // one "ahh" voice: two slightly detuned saw waves through vowel filters, with a gentle vibrato
+    function choirVoice(midi, start, dur, peak, pan) {
+      var f = hz(midi);
+      var g = ctx.createGain();
+      envelope(g, start, dur, peak, 1.8, 2.2);
+      var f1 = ctx.createBiquadFilter(); f1.type = 'bandpass'; f1.frequency.value = 800;  f1.Q.value = 3;
+      var f2 = ctx.createBiquadFilter(); f2.type = 'bandpass'; f2.frequency.value = 1250; f2.Q.value = 4;
+      var g2 = ctx.createGain(); g2.gain.value = 0.7;
+      f1.connect(g); f2.connect(g2); g2.connect(g);
+      var lfo = ctx.createOscillator(); lfo.frequency.value = 4.8 + Math.random();
+      var lfoGain = ctx.createGain(); lfoGain.gain.value = f * 0.004;
+      lfo.connect(lfoGain);
+      [-7, 7].forEach(function (cents) {
+        var o = ctx.createOscillator();
+        o.type = 'sawtooth'; o.frequency.value = f; o.detune.value = cents;
+        lfoGain.connect(o.frequency);
+        o.connect(f1); o.connect(f2);
+        o.start(t0 + start); o.stop(t0 + start + dur + 0.1);
+        sources.push(o);
+      });
+      lfo.start(t0 + start); lfo.stop(t0 + start + dur + 0.1);
+      sources.push(lfo);
+      if (ctx.createStereoPanner) {
+        var pn = ctx.createStereoPanner(); pn.pan.value = pan;
+        g.connect(pn); toRoom(pn);
+      } else {
+        toRoom(g);
+      }
+    }
+
+    // a bell: a few sine partials that each die away at their own speed
+    function bell(freq, start, peak) {
+      [[1, 1, 3.6], [2, 0.5, 2.8], [2.76, 0.35, 2.0], [5.4, 0.15, 1.1], [8.93, 0.08, 0.7]].forEach(function (pt) {
+        var o = ctx.createOscillator(); o.type = 'sine'; o.frequency.value = freq * pt[0];
+        var g = ctx.createGain();
+        g.gain.setValueAtTime(0.0001, t0 + start);
+        g.gain.exponentialRampToValueAtTime(peak * pt[1], t0 + start + 0.01);
+        g.gain.exponentialRampToValueAtTime(0.0001, t0 + start + pt[2]);
+        o.connect(g); toRoom(g);
+        o.start(t0 + start); o.stop(t0 + start + pt[2] + 0.1);
+        sources.push(o);
+      });
+    }
+
+    // deep note underneath
+    var sub = ctx.createOscillator(); sub.type = 'sine'; sub.frequency.value = hz(38);
+    var subGain = ctx.createGain();
+    envelope(subGain, 0, 14, 0.07, 2.5, 3);
+    sub.connect(subGain); subGain.connect(out);
+    sub.start(t0); sub.stop(t0 + 14.2);
+    sources.push(sub);
+
+    // D major -> G major 7 -> D major (add 9)
+    var chords = [
+      { start: 0,   dur: 5.6, notes: [50, 57, 62, 66, 69] },
+      { start: 4.4, dur: 5.6, notes: [43, 50, 59, 66, 74] },
+      { start: 8.6, dur: 5.8, notes: [50, 57, 64, 66, 69, 74] }
+    ];
+    chords.forEach(function (c) {
+      c.notes.forEach(function (n, k) {
+        choirVoice(n, c.start, c.dur, 0.95 / c.notes.length, (k % 2 ? 1 : -1) * (0.15 + 0.12 * k));
+      });
+    });
+
+    // Mookie lands (the drop takes about 2.4 s): a bell strike, then sparkles
+    bell(hz(74), 2.45, 0.5);
+    bell(hz(62), 2.45, 0.4);
+    [81, 86, 90, 93].forEach(function (n, k) { bell(hz(n), 2.95 + k * 0.32, 0.16); });
+    [86, 90, 93].forEach(function (n, k) { bell(hz(n), 9.2 + k * 0.32, 0.1); });
+
+    return sources;
+  }
+  // HOLY-SOUND-END
+
+  var audioCtx = null;
+  var holy = null;
+  function unlockAudio() {
+    try {
+      var AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return null;
+      if (!audioCtx) audioCtx = new AC();
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+    } catch (err) { audioCtx = null; }
+    return audioCtx;
+  }
+  function startHolySound() {
+    try {
+      var ctx = unlockAudio();
+      if (!ctx) return;
+      stopHolySound(true);
+      var out = ctx.createGain();
+      out.gain.value = 0.55; // a gentle volume: this plays on its own, so it shouldn't startle anyone
+      var limiter = ctx.createDynamicsCompressor(); // keeps the loudest moments from distorting
+      out.connect(limiter); limiter.connect(ctx.destination);
+      holy = { out: out, limiter: limiter, sources: buildHolySound(ctx, out, ctx.currentTime + 0.05) };
+    } catch (err) { holy = null; }
+  }
+  function stopHolySound(now) {
+    if (!holy) return;
+    var h = holy;
+    holy = null;
+    try {
+      var t = audioCtx.currentTime;
+      h.out.gain.cancelScheduledValues(t);
+      h.out.gain.setValueAtTime(h.out.gain.value, t);
+      h.out.gain.linearRampToValueAtTime(0, t + (now ? 0.05 : 1.2));
+    } catch (err) {}
+    setTimeout(function () {
+      h.sources.forEach(function (o) { try { o.stop(); } catch (err) {} });
+      try { h.out.disconnect(); h.limiter.disconnect(); } catch (err) {}
+    }, now ? 100 : 1400);
+  }
+
   var mookie = document.getElementById('mookie');
   if (mookie) {
     var clickCount = 0;
@@ -308,6 +452,7 @@
       mookieOpen = false;
       clearTimeout(mookieTimer);
       mookie.classList.remove('is-on');
+      stopHolySound();
       mookieHideTimer = setTimeout(function () { mookie.hidden = true; }, 750);
     };
     var openMookie = function () {
@@ -316,6 +461,7 @@
       mookie.hidden = false;
       void mookie.offsetWidth; // so the drop-in animation starts from the top
       mookie.classList.add('is-on');
+      startHolySound();
       mookieTimer = setTimeout(closeMookie, 14000);
     };
 
@@ -323,6 +469,7 @@
       if (mookieOpen) return;
       if (e.target.closest('a, button, #mookie')) return;
       clickCount++;
+      if (clickCount === 1) unlockAudio(); // sound can only start from a click, so get ready early
       if (clickCount === 6) new Image().src = 'css/images/mookie.webp'; // get him ready
       if (clickCount >= 10) { clickCount = 0; openMookie(); }
     });
