@@ -116,8 +116,6 @@
     <!-- "Swap colors" (see scripts.js): every click generates a new random 5-colour palette.
          Refreshing the page brings back the default colours. -->
     <div id="swap-controls">
-      <!-- "Cat walk": while on, scrolling plays the walking-cat frames like a flipbook -->
-      <button type="button" id="walk-toggle" aria-pressed="false">Cat walk</button>
       <button type="button" id="color-swap">Swap colors <span class="key-hint" aria-hidden="true">space</span></button>
     </div>
 
@@ -215,6 +213,17 @@
         </p>
       </div>
 
+    </div>
+
+    <!-- Easter egg: shown by scripts.js after 10 clicks. Mookie drops in under a spotlight. -->
+    <div id="mookie" class="mookie" role="dialog" aria-label="You have been blessed by Mookie" hidden>
+      <div class="mookie-rays" aria-hidden="true"></div>
+      <div class="mookie-stage">
+        <div class="mookie-glow" aria-hidden="true"></div>
+        <img class="mookie-img" src="css/images/mookie.webp" alt="Mookie, a Siamese cat dressed as a nun" width="870" height="960">
+        <p class="mookie-text">You have been blessed by Mookie</p>
+        <p class="mookie-hint">click anywhere to close</p>
+      </div>
     </div>
 
     <div class="last-block">

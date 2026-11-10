@@ -247,46 +247,6 @@
     if (e.animationName === 'band-bounce') e.target.classList.remove('is-bounced');
   });
 
-  // Fun: "Cat walk". The 16 pictures are frames of one walking cat. While this is on, every band
-  // shows the same frame, chosen by how far down the page you are (a new frame every WALK_STEP
-  // pixels), so one whole cat walks as you scroll: faster when you scroll faster, frozen when you
-  // stop, and backwards when you scroll up.
-  var WALK_STEP = 45;
-  var walkButton = document.getElementById('walk-toggle');
-  var walkOn = false;
-  var walkFrame = -1;
-  var walkQueued = false;
-
-  function walkUpdate() {
-    var frame = Math.floor(window.pageYOffset / WALK_STEP) % 16;
-    if (frame < 0) frame += 16;
-    if (frame === walkFrame) return;
-    walkFrame = frame;
-    loop.style.setProperty('--walk-bg', catUrl(frame + 1));
-  }
-  if (walkButton) {
-    walkButton.addEventListener('click', function () {
-      walkOn = !walkOn;
-      walkButton.setAttribute('aria-pressed', String(walkOn));
-      if (walkOn) {
-        // wait for all 16 frames so the walk doesn't flicker the first time
-        preloadCats().then(function () {
-          if (!walkOn) return;
-          walkFrame = -1;
-          walkUpdate();
-          loop.classList.add('cat-walk');
-        });
-      } else {
-        loop.classList.remove('cat-walk');
-      }
-    });
-    window.addEventListener('scroll', function () {
-      if (!walkOn || walkQueued) return;
-      walkQueued = true;
-      requestAnimationFrame(function () { walkQueued = false; walkUpdate(); });
-    }, { passive: true });
-  }
-
   // Fun: type "cat" anywhere (or click the cat in the footer) and it rains cats.
   var rainRunning = false;
   function catRain() {
@@ -333,6 +293,44 @@
   });
   var footerCatEl = document.querySelector('.footer-cat');
   if (footerCatEl) footerCatEl.addEventListener('click', catRain);
+
+  // Fun: after 10 clicks (anywhere that isn't a link or a button) Mookie drops in from the top of
+  // the screen under a spotlight and blesses you. Click again, press Escape, or wait to close it.
+  var mookie = document.getElementById('mookie');
+  if (mookie) {
+    var clickCount = 0;
+    var mookieOpen = false;
+    var mookieTimer = null;
+    var mookieHideTimer = null;
+
+    var closeMookie = function () {
+      if (!mookieOpen) return;
+      mookieOpen = false;
+      clearTimeout(mookieTimer);
+      mookie.classList.remove('is-on');
+      mookieHideTimer = setTimeout(function () { mookie.hidden = true; }, 750);
+    };
+    var openMookie = function () {
+      mookieOpen = true;
+      clearTimeout(mookieHideTimer);
+      mookie.hidden = false;
+      void mookie.offsetWidth; // so the drop-in animation starts from the top
+      mookie.classList.add('is-on');
+      mookieTimer = setTimeout(closeMookie, 14000);
+    };
+
+    document.addEventListener('click', function (e) {
+      if (mookieOpen) return;
+      if (e.target.closest('a, button, #mookie')) return;
+      clickCount++;
+      if (clickCount === 6) new Image().src = 'css/images/mookie.webp'; // get him ready
+      if (clickCount >= 10) { clickCount = 0; openMookie(); }
+    });
+    mookie.addEventListener('click', closeMookie);
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape') closeMookie();
+    });
+  }
 
   // Fun: at the very end of the page a cat peeks up out of the black footer. It rises when the
   // footer comes into view and ducks back down when you leave, so it pops up again each time.
