@@ -208,7 +208,7 @@
   var catsPreloaded = null;
 
   function catUrl(n) {
-    return 'url("' + new URL('css/images/' + n + '.png', document.baseURI).href + '")';
+    return 'url("' + new URL('css/images/' + n + '.webp', document.baseURI).href + '")';
   }
   function preloadCats() {
     if (!catsPreloaded) {
@@ -216,7 +216,7 @@
         return new Promise(function (resolve) {
           var img = new Image();
           img.onload = img.onerror = resolve;
-          img.src = new URL('css/images/' + n + '.png', document.baseURI).href;
+          img.src = new URL('css/images/' + n + '.webp', document.baseURI).href;
         });
       }));
     }
@@ -246,6 +246,92 @@
   loop.addEventListener('animationend', function (e) {
     if (e.animationName === 'band-bounce') e.target.classList.remove('is-bounced');
   });
+
+  // Fun: "Cat walk". The 16 pictures are frames of one walking cat. While this is on, every band
+  // shows the same frame, chosen by how far down the page you are (a new frame every WALK_STEP
+  // pixels), so one whole cat walks as you scroll: faster when you scroll faster, frozen when you
+  // stop, and backwards when you scroll up.
+  var WALK_STEP = 45;
+  var walkButton = document.getElementById('walk-toggle');
+  var walkOn = false;
+  var walkFrame = -1;
+  var walkQueued = false;
+
+  function walkUpdate() {
+    var frame = Math.floor(window.pageYOffset / WALK_STEP) % 16;
+    if (frame < 0) frame += 16;
+    if (frame === walkFrame) return;
+    walkFrame = frame;
+    loop.style.setProperty('--walk-bg', catUrl(frame + 1));
+  }
+  if (walkButton) {
+    walkButton.addEventListener('click', function () {
+      walkOn = !walkOn;
+      walkButton.setAttribute('aria-pressed', String(walkOn));
+      if (walkOn) {
+        // wait for all 16 frames so the walk doesn't flicker the first time
+        preloadCats().then(function () {
+          if (!walkOn) return;
+          walkFrame = -1;
+          walkUpdate();
+          loop.classList.add('cat-walk');
+        });
+      } else {
+        loop.classList.remove('cat-walk');
+      }
+    });
+    window.addEventListener('scroll', function () {
+      if (!walkOn || walkQueued) return;
+      walkQueued = true;
+      requestAnimationFrame(function () { walkQueued = false; walkUpdate(); });
+    }, { passive: true });
+  }
+
+  // Fun: type "cat" anywhere (or click the cat in the footer) and it rains cats.
+  var rainRunning = false;
+  function catRain() {
+    if (rainRunning || reduceMotion) return;
+    rainRunning = true;
+    var rain = document.createElement('div');
+    rain.className = 'cat-rain';
+    rain.setAttribute('aria-hidden', 'true');
+    for (var d = 0; d < 36; d++) {
+      var drop = document.createElement('div');
+      drop.className = 'cat-drop';
+      var turn = 20 + Math.random() * 50;
+      drop.style.setProperty('--x', (Math.random() * 96 - 4) + '%');
+      drop.style.setProperty('--s', (0.35 + Math.random() * 0.5).toFixed(2));
+      drop.style.setProperty('--r0', (Math.random() * 40 - 20).toFixed(0) + 'deg');
+      drop.style.setProperty('--r1', (Math.random() < 0.5 ? -turn : turn).toFixed(0) + 'deg');
+      drop.style.setProperty('--dur', (2.2 + Math.random() * 2).toFixed(2) + 's');
+      drop.style.setProperty('--delay', (Math.random() * 1.2).toFixed(2) + 's');
+      rain.appendChild(drop);
+    }
+    var meow = document.createElement('div');
+    meow.className = 'cat-meow';
+    meow.setAttribute('aria-hidden', 'true');
+    meow.textContent = 'meow!';
+    document.body.appendChild(rain);
+    document.body.appendChild(meow);
+    setTimeout(function () {
+      rain.remove();
+      meow.remove();
+      rainRunning = false;
+    }, 5800);
+  }
+
+  var typed = '';
+  var typedTimer = null;
+  window.addEventListener('keydown', function (e) {
+    if (e.key.length !== 1 || e.ctrlKey || e.metaKey || e.altKey) return;
+    if (e.target && e.target.closest && e.target.closest('input, textarea, select, [contenteditable]')) return;
+    typed = (typed + e.key.toLowerCase()).slice(-3);
+    clearTimeout(typedTimer);
+    typedTimer = setTimeout(function () { typed = ''; }, 1500);
+    if (typed === 'cat') { typed = ''; catRain(); }
+  });
+  var footerCatEl = document.querySelector('.footer-cat');
+  if (footerCatEl) footerCatEl.addEventListener('click', catRain);
 
   // Fun: at the very end of the page a cat peeks up out of the black footer. It rises when the
   // footer comes into view and ducks back down when you leave, so it pops up again each time.

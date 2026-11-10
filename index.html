@@ -1,15 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <!-- Global site tag (gtag.js) - Google Analytics -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-114999132-2"></script>
-    <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
-
-      gtag('config', 'UA-114999132-2');
-    </script>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Ian Andreu</title>
@@ -125,6 +116,8 @@
     <!-- "Swap colors" (see scripts.js): every click generates a new random 5-colour palette.
          Refreshing the page brings back the default colours. -->
     <div id="swap-controls">
+      <!-- "Cat walk": while on, scrolling plays the walking-cat frames like a flipbook -->
+      <button type="button" id="walk-toggle" aria-pressed="false">Cat walk</button>
       <button type="button" id="color-swap">Swap colors <span class="key-hint" aria-hidden="true">space</span></button>
     </div>
 

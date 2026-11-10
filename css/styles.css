@@ -67,6 +67,12 @@ p {
   100% { transform: rotate(-1deg) scale(1.05); }
 }
 
+/* Fun: "Cat walk" mode. scripts.js sets --walk-bg to the walking-cat frame for the current scroll
+   position, and every band shows that same frame, so one whole cat walks as you scroll. */
+#loop.cat-walk .blocks {
+  --bg: var(--walk-bg) !important;
+}
+
 /* Fun: click a band and its text does a quick bounce while the cats re-deal */
 .blocks {
   cursor: pointer;
@@ -124,23 +130,23 @@ p {
    --ink is the text colour (dark on the light colours, with a soft halo --shadow in the band's
    own colour so it stays readable over the cat). The picture lives in --bg so the desktop and
    phone versions of the fixed-picture effect can share it. */
-.block-1    { background-color: #E33090; --bg: url('images/1.png'); }  /* pink */
-.block-2    { background-color: #FBD40A; --ink: #1B2A2D; --shadow: 0 0 3px #FBD40A, 0 0 6px #FBD40A, 0 0 10px #FBD40A; --bg: url('images/2.png'); }  /* yellow */
-.block-3    { background-color: #06B8C1; --ink: #1B2A2D; --shadow: 0 0 3px #06B8C1, 0 0 6px #06B8C1, 0 0 10px #06B8C1; --bg: url('images/3.png'); }  /* teal */
-.block-4    { background-color: #F88480; --ink: #1B2A2D; --shadow: 0 0 3px #F88480, 0 0 6px #F88480, 0 0 10px #F88480; --bg: url('images/4.png'); }  /* coral */
-.block-5    { background-color: #215575; --bg: url('images/5.png'); }  /* deep blue */
-.block-6    { background-color: #EBEDEC; --ink: #1B2A2D; --shadow: 0 0 3px #EBEDEC, 0 0 6px #EBEDEC, 0 0 10px #EBEDEC; --bg: url('images/6.png'); }  /* light gray */
-.block-7    { background-color: #E33090; --bg: url('images/7.png'); }  /* pink */
-.block-8    { background-color: #FBD40A; --ink: #1B2A2D; --shadow: 0 0 3px #FBD40A, 0 0 6px #FBD40A, 0 0 10px #FBD40A; --bg: url('images/8.png'); }  /* yellow */
-.block-8-5  { background-color: #06B8C1; --ink: #1B2A2D; --shadow: 0 0 3px #06B8C1, 0 0 6px #06B8C1, 0 0 10px #06B8C1; --bg: url('images/8.png'); }  /* teal */
-.block-9    { background-color: #F88480; --ink: #1B2A2D; --shadow: 0 0 3px #F88480, 0 0 6px #F88480, 0 0 10px #F88480; --bg: url('images/9.png'); }  /* coral */
-.block-10   { background-color: #215575; --bg: url('images/10.png'); }  /* deep blue */
-.block-11   { background-color: #EBEDEC; --ink: #1B2A2D; --shadow: 0 0 3px #EBEDEC, 0 0 6px #EBEDEC, 0 0 10px #EBEDEC; --bg: url('images/11.png'); }  /* light gray */
-.block-12   { background-color: #E33090; --bg: url('images/12.png'); }  /* pink */
-.block-13   { background-color: #FBD40A; --ink: #1B2A2D; --shadow: 0 0 3px #FBD40A, 0 0 6px #FBD40A, 0 0 10px #FBD40A; --bg: url('images/13.png'); }  /* yellow */
-.block-14   { background-color: #06B8C1; --ink: #1B2A2D; --shadow: 0 0 3px #06B8C1, 0 0 6px #06B8C1, 0 0 10px #06B8C1; --bg: url('images/14.png'); }  /* teal */
-.block-15   { background-color: #F88480; --ink: #1B2A2D; --shadow: 0 0 3px #F88480, 0 0 6px #F88480, 0 0 10px #F88480; --bg: url('images/15.png'); }  /* coral */
-.block-16   { background-color: #215575; --bg: url('images/16.png'); }  /* deep blue */
+.block-1    { background-color: #E33090; --bg: url('images/1.webp'); }  /* pink */
+.block-2    { background-color: #FBD40A; --ink: #1B2A2D; --shadow: 0 0 3px #FBD40A, 0 0 6px #FBD40A, 0 0 10px #FBD40A; --bg: url('images/2.webp'); }  /* yellow */
+.block-3    { background-color: #06B8C1; --ink: #1B2A2D; --shadow: 0 0 3px #06B8C1, 0 0 6px #06B8C1, 0 0 10px #06B8C1; --bg: url('images/3.webp'); }  /* teal */
+.block-4    { background-color: #F88480; --ink: #1B2A2D; --shadow: 0 0 3px #F88480, 0 0 6px #F88480, 0 0 10px #F88480; --bg: url('images/4.webp'); }  /* coral */
+.block-5    { background-color: #215575; --bg: url('images/5.webp'); }  /* deep blue */
+.block-6    { background-color: #EBEDEC; --ink: #1B2A2D; --shadow: 0 0 3px #EBEDEC, 0 0 6px #EBEDEC, 0 0 10px #EBEDEC; --bg: url('images/6.webp'); }  /* light gray */
+.block-7    { background-color: #E33090; --bg: url('images/7.webp'); }  /* pink */
+.block-8    { background-color: #FBD40A; --ink: #1B2A2D; --shadow: 0 0 3px #FBD40A, 0 0 6px #FBD40A, 0 0 10px #FBD40A; --bg: url('images/8.webp'); }  /* yellow */
+.block-8-5  { background-color: #06B8C1; --ink: #1B2A2D; --shadow: 0 0 3px #06B8C1, 0 0 6px #06B8C1, 0 0 10px #06B8C1; --bg: url('images/8.webp'); }  /* teal */
+.block-9    { background-color: #F88480; --ink: #1B2A2D; --shadow: 0 0 3px #F88480, 0 0 6px #F88480, 0 0 10px #F88480; --bg: url('images/9.webp'); }  /* coral */
+.block-10   { background-color: #215575; --bg: url('images/10.webp'); }  /* deep blue */
+.block-11   { background-color: #EBEDEC; --ink: #1B2A2D; --shadow: 0 0 3px #EBEDEC, 0 0 6px #EBEDEC, 0 0 10px #EBEDEC; --bg: url('images/11.webp'); }  /* light gray */
+.block-12   { background-color: #E33090; --bg: url('images/12.webp'); }  /* pink */
+.block-13   { background-color: #FBD40A; --ink: #1B2A2D; --shadow: 0 0 3px #FBD40A, 0 0 6px #FBD40A, 0 0 10px #FBD40A; --bg: url('images/13.webp'); }  /* yellow */
+.block-14   { background-color: #06B8C1; --ink: #1B2A2D; --shadow: 0 0 3px #06B8C1, 0 0 6px #06B8C1, 0 0 10px #06B8C1; --bg: url('images/14.webp'); }  /* teal */
+.block-15   { background-color: #F88480; --ink: #1B2A2D; --shadow: 0 0 3px #F88480, 0 0 6px #F88480, 0 0 10px #F88480; --bg: url('images/15.webp'); }  /* coral */
+.block-16   { background-color: #215575; --bg: url('images/16.webp'); }  /* deep blue */
 
 
 /* keep the keyboard-focus ring visible on the light bands */
@@ -158,8 +164,6 @@ p {
   bottom: max(16px, env(safe-area-inset-bottom));
   z-index: 10;
   display: flex;
-  flex-direction: column;
-  align-items: flex-end;
   gap: 10px;
   max-width: calc(100vw - 32px);
 }
@@ -209,6 +213,11 @@ p {
 @media (hover: none) {
   .key-hint { display: none; }
 }
+/* "Cat walk" switched on */
+#swap-controls button[aria-pressed="true"] {
+  color: black;
+  background-color: yellow;
+}
 #swap-controls button:active {
   color: black;
   background-color: yellow;
@@ -250,12 +259,14 @@ p {
   width: 126px;
   height: 112px;
   overflow: hidden;
-  pointer-events: none;
+  pointer-events: none; /* only the cat itself (below) can be clicked */
 }
 .footer-cat {
+  pointer-events: auto;
+  cursor: pointer;
   width: 126px;
   height: 144px;
-  background: url('images/11.png') -117px -9px / 300px 300px no-repeat;
+  background: url('images/11.webp') -117px -9px / 300px 300px no-repeat;
   transform: translateY(100%);
   transition: transform 550ms cubic-bezier(0.34, 1.56, 0.64, 1);
 }
@@ -263,6 +274,49 @@ p {
   transform: translateY(0);
   animation: cat-bob 2.8s ease-in-out 700ms infinite;
 }
+
+/* Fun: typing "cat" (or clicking the footer cat) makes it rain cats */
+.cat-rain {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 30;
+}
+.cat-drop {
+  position: absolute;
+  top: 0;
+  left: var(--x);
+  width: 126px;
+  height: 144px;
+  background: url('images/11.webp') -117px -9px / 300px 300px no-repeat;
+  animation: cat-fall var(--dur) linear var(--delay) both;
+}
+@keyframes cat-fall {
+  from { transform: translateY(-200px) rotate(var(--r0)) scale(var(--s)); }
+  to   { transform: translateY(calc(100vh + 200px)) rotate(var(--r1)) scale(var(--s)); }
+}
+.cat-meow {
+  position: fixed;
+  top: 18%;
+  left: 50%;
+  z-index: 31;
+  font-size: clamp(44px, 14vw, 130px);
+  color: yellow;
+  text-shadow: 0 4px 0 black, 0 0 18px black;
+  pointer-events: none;
+  animation: cat-meow 1.8s ease-out forwards;
+}
+@keyframes cat-meow {
+  0%   { opacity: 0; transform: translateX(-50%) scale(0.5) rotate(-6deg); }
+  20%  { opacity: 1; transform: translateX(-50%) scale(1.1) rotate(3deg); }
+  80%  { opacity: 1; transform: translateX(-50%) scale(1) rotate(-2deg); }
+  100% { opacity: 0; transform: translateX(-50%) scale(1.05) rotate(0); }
+}
+
 @keyframes cat-bob {
   0%, 100% { transform: translateY(0); }
   50%      { transform: translateY(10px); }
