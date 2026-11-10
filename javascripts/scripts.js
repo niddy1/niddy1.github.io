@@ -479,57 +479,115 @@
     });
   }
 
-  // The cat sounds are made in the browser too: a hiss (filtered noise) and a meow (a pitch-gliding
-  // "ahh" through moving vowel filters).
+  // The cat sounds are made in the browser too: a hiss (breathy, spitty noise) and a meow (a
+  // gliding "m-ee-ow" voice run through moving vowel filters).
   // CAT-SOUNDS-BEGIN
-  function buildHiss(ctx, out, t0) {
-    var len = Math.floor(ctx.sampleRate * 0.9);
+  function noiseBuffer(ctx, seconds) {
+    var len = Math.floor(ctx.sampleRate * seconds);
     var buf = ctx.createBuffer(1, len, ctx.sampleRate);
     var data = buf.getChannelData(0);
     for (var i = 0; i < len; i++) data[i] = Math.random() * 2 - 1;
-    var src = ctx.createBufferSource(); src.buffer = buf;
-    var hp = ctx.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 3200; hp.Q.value = 0.7;
-    var bp = ctx.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = 6800; bp.Q.value = 0.5;
-    var g = ctx.createGain();
-    g.gain.setValueAtTime(0.0001, t0);
-    g.gain.exponentialRampToValueAtTime(1.0, t0 + 0.05);
-    [[0.12, 0.65], [0.2, 0.95], [0.3, 0.7], [0.4, 0.9], [0.55, 0.55]].forEach(function (pt) {
-      g.gain.linearRampToValueAtTime(pt[1], t0 + pt[0]); // uneven, breathy
-    });
-    g.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.85);
-    src.connect(hp); hp.connect(bp); bp.connect(g); g.connect(out);
-    src.start(t0); src.stop(t0 + 0.9);
-    return [src];
+    return buf;
+  }
+  function buildHiss(ctx, out, t0) {
+    var dur = 1.05;
+    var sources = [];
+    function noise(seconds) {
+      var n = ctx.createBufferSource(); n.buffer = noiseBuffer(ctx, seconds);
+      sources.push(n);
+      return n;
+    }
+    // the hiss itself: bright noise, boosted around 5-6 kHz, with the boost wandering a little
+    var hiss = noise(dur + 0.1);
+    var hp = ctx.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 2600; hp.Q.value = 0.8;
+    var air = ctx.createBiquadFilter(); air.type = 'peaking'; air.gain.value = 10; air.Q.value = 0.9;
+    air.frequency.setValueAtTime(4800, t0);
+    air.frequency.linearRampToValueAtTime(6600, t0 + 0.3);
+    air.frequency.linearRampToValueAtTime(5200, t0 + 0.9);
+    var lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 11000;
+    // a rough, breathy "hhh" underneath
+    var breath = noise(dur + 0.1);
+    var bp = ctx.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = 1900; bp.Q.value = 0.7;
+    var breathGain = ctx.createGain(); breathGain.gain.value = 0.3;
+    // the hiss isn't steady: slow random flutter in the loudness (noise squashed to ~20 Hz)
+    var wobbleSrc = noise(dur + 0.1);
+    var wobbleLp = ctx.createBiquadFilter(); wobbleLp.type = 'lowpass'; wobbleLp.frequency.value = 22;
+    var wobbleAmt = ctx.createGain(); wobbleAmt.gain.value = 1.6;
+    var turbulence = ctx.createGain(); turbulence.gain.value = 0.7;
+    wobbleSrc.connect(wobbleLp); wobbleLp.connect(wobbleAmt); wobbleAmt.connect(turbulence.gain);
+    // loudness: a quick "spit" at the start, then a long breath out
+    var env = ctx.createGain();
+    env.gain.setValueAtTime(0.0001, t0);
+    env.gain.exponentialRampToValueAtTime(1.5, t0 + 0.025);
+    env.gain.exponentialRampToValueAtTime(0.85, t0 + 0.12);
+    env.gain.linearRampToValueAtTime(1.0, t0 + 0.45);
+    env.gain.linearRampToValueAtTime(0.55, t0 + 0.75);
+    env.gain.linearRampToValueAtTime(0.0001, t0 + 0.98); // fades away like a leaking tyre
+    hiss.connect(hp); hp.connect(air); air.connect(lp); lp.connect(turbulence);
+    breath.connect(bp); bp.connect(breathGain); breathGain.connect(turbulence);
+    turbulence.connect(env); env.connect(out);
+    // the "spit": a very short click of noise just before the hiss takes over
+    var spit = noise(0.05);
+    var spitBp = ctx.createBiquadFilter(); spitBp.type = 'bandpass'; spitBp.frequency.value = 3800; spitBp.Q.value = 0.6;
+    var spitGain = ctx.createGain();
+    spitGain.gain.setValueAtTime(1.4, t0);
+    spitGain.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.035);
+    spit.connect(spitBp); spitBp.connect(spitGain); spitGain.connect(out);
+    sources.forEach(function (n) { n.start(t0); n.stop(t0 + dur + 0.1); });
+    return sources;
   }
   function buildMeow(ctx, out, t0) {
-    var dur = 0.62;
+    var dur = 0.85;
+    // the voice: a buzzy wave that rises, hangs, then falls away (like a real "mee-yow")
     var o = ctx.createOscillator(); o.type = 'sawtooth';
-    o.frequency.setValueAtTime(480, t0);
-    o.frequency.linearRampToValueAtTime(720, t0 + 0.18);
-    o.frequency.linearRampToValueAtTime(650, t0 + 0.42);
-    o.frequency.exponentialRampToValueAtTime(380, t0 + dur);
-    var lfo = ctx.createOscillator(); lfo.frequency.value = 7;
-    var lfoGain = ctx.createGain(); lfoGain.gain.value = 10;
-    lfo.connect(lfoGain); lfoGain.connect(o.frequency);
-    var f1 = ctx.createBiquadFilter(); f1.type = 'bandpass'; f1.Q.value = 5;
-    f1.frequency.setValueAtTime(500, t0);
-    f1.frequency.linearRampToValueAtTime(950, t0 + 0.2);
-    f1.frequency.linearRampToValueAtTime(780, t0 + 0.45);
-    f1.frequency.linearRampToValueAtTime(520, t0 + dur);
-    var f2 = ctx.createBiquadFilter(); f2.type = 'bandpass'; f2.Q.value = 6;
-    f2.frequency.setValueAtTime(2200, t0);
-    f2.frequency.linearRampToValueAtTime(1500, t0 + 0.2);
-    f2.frequency.linearRampToValueAtTime(1100, t0 + dur);
-    var g2 = ctx.createGain(); g2.gain.value = 0.6;
-    var g = ctx.createGain();
-    g.gain.setValueAtTime(0.0001, t0);
-    g.gain.exponentialRampToValueAtTime(3.2, t0 + 0.06);
-    g.gain.setValueAtTime(3.2, t0 + 0.4);
-    g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
-    o.connect(f1); o.connect(f2); f1.connect(g); f2.connect(g2); g2.connect(g); g.connect(out);
-    o.start(t0); o.stop(t0 + dur + 0.05);
-    lfo.start(t0); lfo.stop(t0 + dur + 0.05);
-    return [o, lfo];
+    o.frequency.setValueAtTime(430, t0);
+    o.frequency.linearRampToValueAtTime(700, t0 + 0.12);
+    o.frequency.linearRampToValueAtTime(790, t0 + 0.3);
+    o.frequency.linearRampToValueAtTime(650, t0 + 0.55);
+    o.frequency.exponentialRampToValueAtTime(400, t0 + dur);
+    // a little wobble so it sounds like a throat and not a synth
+    var vib = ctx.createOscillator(); vib.frequency.value = 6;
+    var vibAmt = ctx.createGain(); vibAmt.gain.value = 14;
+    var creak = ctx.createOscillator(); creak.frequency.value = 41;
+    var creakAmt = ctx.createGain(); creakAmt.gain.value = 7;
+    vib.connect(vibAmt); vibAmt.connect(o.frequency);
+    creak.connect(creakAmt); creakAmt.connect(o.frequency);
+    var soften = ctx.createBiquadFilter(); soften.type = 'lowpass'; soften.frequency.value = 5200;
+    o.connect(soften);
+    // breath mixed into the voice
+    var air = ctx.createBufferSource(); air.buffer = noiseBuffer(ctx, dur + 0.1);
+    var airGain = ctx.createGain(); airGain.gain.value = 0.12;
+    air.connect(airGain);
+    // vowel filters that move through  m -> ee -> ow -> oo  as the meow goes
+    function formant(f, q, level, points) {
+      var bp = ctx.createBiquadFilter(); bp.type = 'bandpass'; bp.Q.value = q;
+      bp.frequency.setValueAtTime(points[0], t0);
+      points.forEach(function (hz, i) {
+        if (i) bp.frequency.linearRampToValueAtTime(hz, t0 + dur * [0, 0.14, 0.45, 0.72, 1][i]);
+      });
+      var g = ctx.createGain(); g.gain.value = level;
+      soften.connect(bp); airGain.connect(bp);
+      bp.connect(g);
+      return g;
+    }
+    var voice = ctx.createGain();
+    [
+      formant(1, 6,  1.0, [300, 420, 800, 700, 430]),    // first formant: closed, open, closing
+      formant(2, 9,  0.7, [1500, 2700, 1250, 1000, 850]), // second: the "ee" sits high, "ow" low
+      formant(3, 10, 0.35, [3000, 3300, 2900, 2600, 2400])
+    ].forEach(function (g) { g.connect(voice); });
+    // loudness: starts quiet and "closed" (the m), opens up, then tails off
+    var env = ctx.createGain();
+    env.gain.setValueAtTime(0.0001, t0);
+    env.gain.exponentialRampToValueAtTime(0.5, t0 + 0.04);
+    env.gain.linearRampToValueAtTime(1.0, t0 + 0.16);
+    env.gain.linearRampToValueAtTime(0.85, t0 + 0.5);
+    env.gain.linearRampToValueAtTime(0.4, t0 + 0.7);   // a long "yow" tail, not a sudden stop
+    env.gain.linearRampToValueAtTime(0.0001, t0 + dur);
+    voice.connect(env); env.connect(out);
+    var all = [o, vib, creak, air];
+    all.forEach(function (n) { n.start(t0); n.stop(t0 + dur + 0.05); });
+    return all;
   }
   // CAT-SOUNDS-END
   function playCatSound(build, volume) {
@@ -597,12 +655,12 @@
       setTimeout(function () {                       // the hiss
         footerForRunner.classList.add('is-hissing');
         setTimeout(function () { footerForRunner.classList.remove('is-hissing'); }, 800);
-        playCatSound(buildHiss, 0.5);
+        playCatSound(buildHiss, 0.17);
         sayWord('HSSSS!', 'hiss', catBox.left + catBox.width / 2, catBox.top - 34);
       }, 260);
       setTimeout(function () {                       // the meow
         if (!running) return;
-        playCatSound(buildMeow, 0.45);
+        playCatSound(buildMeow, 0.8);
         sayWord('mew!', 'mew', runX + runWidth / 2, window.innerHeight - runner.offsetHeight - 34);
       }, 950);
     };
