@@ -290,7 +290,8 @@
   // Fun: type "cat" anywhere (or click the cat in the footer) and it rains cats.
   var rainRunning = false;
   function catRain() {
-    if (rainRunning || reduceMotion) return;
+    // (not skipped for "reduce motion": you asked for it by typing the word or tapping the cat)
+    if (rainRunning) return;
     rainRunning = true;
     var rain = document.createElement('div');
     rain.className = 'cat-rain';
