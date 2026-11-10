@@ -484,6 +484,10 @@ p {
 
 /* the running cat's startled hop (uses the separate "translate" property so it doesn't fight
    the left/right movement, which uses "transform") */
+.runner.is-airborne .runner-sprite {
+  animation: none;
+  background-position: calc(-304px * var(--rs)) 0; /* legs stretched out while he's in the air */
+}
 .runner.is-hop {
   animation: runner-hop 480ms linear;
 }
@@ -516,6 +520,43 @@ p {
   18%  { opacity: 1; margin-top: 0;    scale: 1.15; }
   70%  { opacity: 1; scale: 1; }
   100% { opacity: 0; margin-top: -36px; scale: 1; }
+}
+
+/* petting the footer cat: a little squish, then a full happy wiggle after 10 pets */
+.footer-cat {
+  transition: transform 550ms cubic-bezier(0.34, 1.56, 0.64, 1), scale 120ms ease-out;
+}
+.footer-cat.is-petted {
+  scale: 1.08;
+}
+.last-block.is-peeking .footer-cat.is-happy {
+  transform-origin: 50% 100%;
+  animation: cat-happy 1.3s ease-in-out;
+}
+@keyframes cat-happy {
+  0%   { transform: translateY(0) rotate(0) scale(1); }
+  12%  { transform: translateY(-14px) rotate(-8deg) scale(1.12); }
+  28%  { transform: translateY(0) rotate(7deg) scale(1.08); }
+  44%  { transform: translateY(-14px) rotate(-7deg) scale(1.12); }
+  60%  { transform: translateY(0) rotate(6deg) scale(1.08); }
+  78%  { transform: translateY(-8px) rotate(-3deg) scale(1.1); }
+  100% { transform: translateY(0) rotate(0) scale(1); }
+}
+.cat-heart {
+  position: fixed;
+  z-index: 26;
+  pointer-events: none;
+  font-size: var(--hs, 28px);
+  line-height: 1;
+  color: #ff5c9a;
+  text-shadow: 0 2px 0 #000, 0 0 8px #000;
+  transform: translateX(-50%);
+  animation: heart-float 1.6s ease-out forwards;
+}
+@keyframes heart-float {
+  0%   { opacity: 0; translate: 0 0; scale: 0.5; }
+  15%  { opacity: 1; scale: 1.1; }
+  100% { opacity: 0; translate: var(--dx, 0px) -150px; scale: 1; }
 }
 
 @keyframes cat-bob {

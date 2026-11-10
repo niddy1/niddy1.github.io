@@ -291,8 +291,60 @@
     typedTimer = setTimeout(function () { typed = ''; }, 1500);
     if (typed === 'cat') { typed = ''; catRain(); }
   });
+  // Fun: pet the cat in the footer (click or tap): hearts float up and he purrs. Pet him 10 times
+  // (each within a few seconds of the last) and he goes full happy-wiggle, with a big purr, a burst
+  // of hearts, and it rains cats (so phones, which can't type "cat", can get the rain too).
   var footerCatEl = document.querySelector('.footer-cat');
-  if (footerCatEl) footerCatEl.addEventListener('click', catRain);
+  function floatHeart(x, y) {
+    var h = document.createElement('div');
+    h.className = 'cat-heart';
+    h.setAttribute('aria-hidden', 'true');
+    h.textContent = '\u2665';
+    h.style.left = x + 'px';
+    h.style.top = y + 'px';
+    h.style.setProperty('--hs', (22 + Math.random() * 18).toFixed(0) + 'px');
+    h.style.setProperty('--dx', (Math.random() * 60 - 30).toFixed(0) + 'px');
+    document.body.appendChild(h);
+    setTimeout(function () { h.remove(); }, 1700);
+  }
+  if (footerCatEl) {
+    var petCount = 0;
+    var petTimer = null;
+    var lastPurr = 0;
+    footerCatEl.addEventListener('click', function () {
+      unlockAudio();
+      var box = footerCatEl.getBoundingClientRect();
+      var hearts = 1 + Math.floor(Math.random() * 2);
+      for (var i = 0; i < hearts; i++) floatHeart(box.left + box.width * (0.25 + Math.random() * 0.5), box.top + 14);
+      footerCatEl.classList.add('is-petted');
+      setTimeout(function () { footerCatEl.classList.remove('is-petted'); }, 140);
+      var now = Date.now();
+      if (now - lastPurr > 650) {
+        lastPurr = now;
+        playCatSound(function (ctx, out, t0) { return buildPurr(ctx, out, t0, 1.1); }, 0.9);
+      }
+      petCount++;
+      clearTimeout(petTimer);
+      petTimer = setTimeout(function () { petCount = 0; }, 4000);
+      if (petCount >= 10) {
+        petCount = 0;
+        footerCatEl.classList.remove('is-happy');
+        void footerCatEl.offsetWidth;
+        footerCatEl.classList.add('is-happy');
+        setTimeout(function () { footerCatEl.classList.remove('is-happy'); }, 1400);
+        playCatSound(function (ctx, out, t0) { return buildPurr(ctx, out, t0, 2.6); }, 1.0);
+        for (var k = 0; k < 14; k++) {
+          (function (delay) {
+            setTimeout(function () {
+              var b = footerCatEl.getBoundingClientRect();
+              floatHeart(b.left + b.width * (0.1 + Math.random() * 0.8), b.top + 10);
+            }, delay);
+          }(k * 90));
+        }
+        setTimeout(catRain, 700);
+      }
+    });
+  }
 
   // Fun: after 10 clicks (anywhere that isn't a link or a button) Mookie drops in from the top of
   // the screen under a spotlight and blesses you. Click again, press Escape, or wait to close it.
@@ -467,7 +519,7 @@
 
     document.addEventListener('click', function (e) {
       if (mookieOpen) return;
-      if (e.target.closest('a, button, #mookie')) return;
+      if (e.target.closest('a, button, #mookie, .footer-cat')) return;
       clickCount++;
       if (clickCount === 1) unlockAudio(); // sound can only start from a click, so get ready early
       if (clickCount === 6) new Image().src = 'css/images/mookie.webp'; // get him ready
@@ -589,6 +641,25 @@
     all.forEach(function (n) { n.start(t0); n.stop(t0 + dur + 0.05); });
     return all;
   }
+  function buildPurr(ctx, out, t0, dur) {
+    // a purr is a low rumble that pulses about 25 times a second
+    var n = ctx.createBufferSource(); n.buffer = noiseBuffer(ctx, dur + 0.2);
+    var hp = ctx.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 45;
+    var lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 420; lp.Q.value = 0.8;
+    var body = ctx.createBiquadFilter(); body.type = 'peaking'; body.frequency.value = 190; body.gain.value = 8; body.Q.value = 1;
+    var pulse = ctx.createGain(); pulse.gain.value = 0.5;
+    var lfo = ctx.createOscillator(); lfo.type = 'sine'; lfo.frequency.value = 24 + Math.random() * 3;
+    var lfoAmt = ctx.createGain(); lfoAmt.gain.value = 0.5;
+    lfo.connect(lfoAmt); lfoAmt.connect(pulse.gain);
+    var env = ctx.createGain();
+    env.gain.setValueAtTime(0.0001, t0);
+    env.gain.linearRampToValueAtTime(1.0, t0 + Math.min(0.25, dur * 0.25));
+    env.gain.setValueAtTime(1.0, t0 + dur - Math.min(0.5, dur * 0.4));
+    env.gain.linearRampToValueAtTime(0.0001, t0 + dur);
+    n.connect(hp); hp.connect(lp); lp.connect(body); body.connect(pulse); pulse.connect(env); env.connect(out);
+    n.start(t0); n.stop(t0 + dur + 0.1); lfo.start(t0); lfo.stop(t0 + dur + 0.1);
+    return [n, lfo];
+  }
   // CAT-SOUNDS-END
   function playCatSound(build, volume) {
     try {
@@ -617,26 +688,18 @@
     var runWidth = 0;
     var lastFrame = 0;
 
-    var runnerTick = function (now) {
-      if (!running) return;
-      var dt = Math.min(0.05, (now - lastFrame) / 1000);
-      lastFrame = now;
-      runX += runDir * runWidth * 1.5 * dt; // about one and a half cat-lengths per second
-      var screenW = window.innerWidth;
-      if (runDir > 0 && runX > screenW) {
-        if (heldDir === 1) { runX = -runWidth; } else { stopRunner(); return; }
-      } else if (runDir < 0 && runX < -runWidth) {
-        if (heldDir === -1) { runX = screenW; } else { stopRunner(); return; }
-      }
-      runner.style.transform = 'translateX(' + runX.toFixed(1) + 'px)';
-      checkFooterCat();
-      requestAnimationFrame(runnerTick);
-    };
     // The footer cat (only there once you've scrolled to the end of the page) and the runner can meet.
     // When the runner gets close he does a startled hop, the footer cat hisses, and then he meows.
+    // But if he's already in the air (you pressed the up arrow), he leaps right over the footer cat.
     var footerForRunner = document.querySelector('.last-block');
     var peekBox = document.querySelector('.footer-peek');
     var metFooterCat = false;
+    var jumpY = 0;          // how high above the ground he is, in px
+    var jumpV = 0;          // how fast he's going up (px per second)
+    var leaping = false;    // flying over the footer cat
+    var leapHissed = false;
+    var GRAVITY = 2400;
+    var JUMP_SPEED = 820;   // a hop about 140px high that takes ~0.7 seconds
 
     var sayWord = function (text, kind, x, y) {
       var w = document.createElement('div');
@@ -648,16 +711,23 @@
       document.body.appendChild(w);
       setTimeout(function () { w.remove(); }, 1300);
     };
+    var hissFooterCat = function (catBox) {
+      footerForRunner.classList.add('is-hissing');
+      setTimeout(function () { footerForRunner.classList.remove('is-hissing'); }, 800);
+      playCatSound(buildHiss, 0.17);
+      sayWord('HSSSS!', 'hiss', catBox.left + catBox.width / 2, catBox.top - 34);
+    };
     var meetFooterCat = function (catBox) {
       metFooterCat = true;
+      if (jumpY > 12) {                              // in the air: leap over!
+        leaping = true;
+        leapHissed = false;
+        sayWord('hup!', 'mew', runX + runWidth / 2, window.innerHeight - runner.offsetHeight - jumpY - 34);
+        return;
+      }
       runner.classList.add('is-hop');
       setTimeout(function () { runner.classList.remove('is-hop'); }, 500);
-      setTimeout(function () {                       // the hiss
-        footerForRunner.classList.add('is-hissing');
-        setTimeout(function () { footerForRunner.classList.remove('is-hissing'); }, 800);
-        playCatSound(buildHiss, 0.17);
-        sayWord('HSSSS!', 'hiss', catBox.left + catBox.width / 2, catBox.top - 34);
-      }, 260);
+      setTimeout(function () { hissFooterCat(peekBox.getBoundingClientRect()); }, 260);
       setTimeout(function () {                       // the meow
         if (!running) return;
         playCatSound(buildMeow, 0.8);
@@ -673,6 +743,46 @@
       if (!metFooterCat && gap > 0 && gap <= runWidth * 0.55) meetFooterCat(cat);
       else if (metFooterCat && gap > runWidth * 2) metFooterCat = false; // looped round: ready to meet again
     };
+    // up/down movement: a jump, or a glide over the footer cat's head
+    var stepJump = function (dt) {
+      if (leaping && peekBox) {
+        var cat = peekBox.getBoundingClientRect();
+        var clearY = window.innerHeight - cat.top + 10;          // just above the footer cat's ears
+        jumpV = 0;
+        jumpY += (clearY - jumpY) * Math.min(1, 9 * dt);
+        var centre = runX + runWidth / 2;
+        var catCentre = cat.left + cat.width / 2;
+        if (!leapHissed && (runDir > 0 ? centre >= catCentre : centre <= catCentre)) {
+          leapHissed = true;                                     // the footer cat hisses as he flies over
+          hissFooterCat(cat);
+        }
+        var back = runDir > 0 ? runX : runX + runWidth;
+        if (runDir > 0 ? back > cat.right + 12 : back < cat.left - 12) leaping = false;
+      } else if (jumpY > 0 || jumpV > 0) {
+        jumpV -= GRAVITY * dt;
+        jumpY += jumpV * dt;
+        if (jumpY <= 0) { jumpY = 0; jumpV = 0; }
+      }
+      runner.classList.toggle('is-airborne', jumpY > 3);
+      runner.style.translate = jumpY > 0.5 ? '0 ' + (-jumpY).toFixed(1) + 'px' : '';
+    };
+
+    var runnerTick = function (now) {
+      if (!running) return;
+      var dt = Math.min(0.05, (now - lastFrame) / 1000);
+      lastFrame = now;
+      runX += runDir * runWidth * 1.5 * dt; // about one and a half cat-lengths per second
+      var screenW = window.innerWidth;
+      if (runDir > 0 && runX > screenW) {
+        if (heldDir === 1) { runX = -runWidth; } else { stopRunner(); return; }
+      } else if (runDir < 0 && runX < -runWidth) {
+        if (heldDir === -1) { runX = screenW; } else { stopRunner(); return; }
+      }
+      runner.style.transform = 'translateX(' + runX.toFixed(1) + 'px)';
+      checkFooterCat();
+      stepJump(dt);
+      requestAnimationFrame(runnerTick);
+    };
     var turnRunner = function (dir) {
       runDir = dir;
       runner.classList.toggle('is-left', dir < 0);
@@ -680,6 +790,9 @@
     var startRunner = function () {
       running = true;
       metFooterCat = false;
+      jumpY = 0; jumpV = 0; leaping = false;
+      runner.style.translate = '';
+      runner.classList.remove('is-airborne');
       runner.hidden = false;
       runWidth = runner.offsetWidth;
       turnRunner(1);
@@ -690,11 +803,17 @@
     };
     var stopRunner = function () {
       running = false;
+      leaping = false;
       runner.hidden = true;
     };
 
     window.addEventListener('keydown', function (e) {
       if (e.ctrlKey || e.metaKey || e.altKey || e.shiftKey) return;
+      if (e.key === 'ArrowUp' && running) {   // jump (and don't scroll the page while he's out)
+        e.preventDefault();
+        if (!e.repeat && jumpY === 0 && !runner.classList.contains('is-hop')) jumpV = JUMP_SPEED;
+        return;
+      }
       var dir = e.key === 'ArrowRight' ? 1 : (e.key === 'ArrowLeft' ? -1 : 0);
       if (!dir) return;
       unlockAudio(); // a key press counts as the "click" browsers need before they allow sound
@@ -719,6 +838,59 @@
     });
     window.addEventListener('blur', function () { heldDir = 0; }); // key-up can get lost if you switch windows
   }
+
+  // Fun: the Konami code (up up down down left right left right B A) throws a party: the colours
+  // flow from palette to palette, it rains cats, the running cat joins in, and then Mookie
+  // arrives to bless everyone. (The colours fade slowly, never flash, and sit still if you have
+  // "reduce motion" turned on.)
+  var KONAMI = ['ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight', 'b', 'a'];
+  var konamiAt = 0;
+  var konamiTimer = null;
+  var partyOn = false;
+
+  function startParty() {
+    if (partyOn || (typeof mookieOpen !== 'undefined' && mookieOpen)) return;
+    partyOn = true;
+    catRain();
+    if (typeof startRunner === 'function' && !running) { heldDir = 0; startRunner(); }
+    var swaps = 0;
+    var swapTimer = null;
+    if (swapButton && !reduceMotion) {
+      swapTimer = setInterval(function () {
+        swapButton.click();
+        if (++swaps >= 9) clearInterval(swapTimer);
+      }, 650);
+    }
+    setTimeout(function () {
+      clearInterval(swapTimer);
+      partyOn = false;
+      if (typeof openMookie === 'function' && !mookieOpen) openMookie();
+    }, 6200);
+  }
+
+  window.addEventListener('keydown', function (e) {
+    if (e.ctrlKey || e.metaKey || e.altKey || e.shiftKey && e.key.length > 1) return;
+    var key = e.key.length === 1 ? e.key.toLowerCase() : e.key;
+    if (key === KONAMI[konamiAt]) {
+      konamiAt++;
+      clearTimeout(konamiTimer);
+      konamiTimer = setTimeout(function () { konamiAt = 0; }, 4000);
+      if (konamiAt === KONAMI.length) {
+        konamiAt = 0;
+        unlockAudio(); // so Mookie's sound is allowed to play when he arrives
+        startParty();
+      }
+    } else {
+      konamiAt = key === KONAMI[0] ? 1 : 0;
+    }
+  });
+
+  // Fun: when you switch to another tab, the tab's title tries to get you back.
+  var homeTitle = document.title;
+  var awayTitles = ['the cats miss you', 'come back... \uD83D\uDC08', 'Mookie is watching', 'psst. the cat is lonely'];
+  document.addEventListener('visibilitychange', function () {
+    document.title = document.hidden ? awayTitles[Math.floor(Math.random() * awayTitles.length)] : homeTitle;
+  });
 
   // Fun: at the very end of the page a cat peeks up out of the black footer. It rises when the
   // footer comes into view and ducks back down when you leave, so it pops up again each time.
