@@ -243,7 +243,7 @@ p {
    the footer's top edge; the cat (frame 11, cropped to the head) slides up into it. */
 .footer-peek {
   position: absolute;
-  left: max(24px, 14%);
+  right: max(24px, 12%); /* on the right so the running cat has room before he reaches it */
   bottom: 100%;
   width: 126px;
   height: 112px;
@@ -465,6 +465,57 @@ p {
   .mookie.is-on .mookie-img { transition: none; }
   .mookie-rays, .mookie-glow { animation: none; }
   .mookie.is-on .mookie-text, .mookie.is-on .mookie-hint { transition-delay: 300ms; }
+}
+
+/* the footer cat hisses at the running cat: a quick angry shake and flash */
+.last-block.is-hissing .footer-cat {
+  animation: cat-hiss 750ms ease-out;
+}
+@keyframes cat-hiss {
+  0%   { transform: translateY(0); filter: none; }
+  10%  { transform: translate(-8px, 4px); filter: brightness(1.5) saturate(1.4); }
+  22%  { transform: translate(7px, 0); }
+  34%  { transform: translate(-6px, 3px); filter: brightness(1.4) saturate(1.4); }
+  46%  { transform: translate(5px, 0); }
+  58%  { transform: translate(-3px, 2px); }
+  72%  { transform: translate(2px, 0); filter: none; }
+  100% { transform: translateY(0); filter: none; }
+}
+
+/* the running cat's startled hop (uses the separate "translate" property so it doesn't fight
+   the left/right movement, which uses "transform") */
+.runner.is-hop {
+  animation: runner-hop 480ms linear;
+}
+@keyframes runner-hop {
+  0%   { translate: 0 0;                          animation-timing-function: cubic-bezier(0.2, 0.7, 0.4, 1); }
+  45%  { translate: 0 calc(-64px * var(--rs));    animation-timing-function: cubic-bezier(0.6, 0, 0.8, 0.4); }
+  100% { translate: 0 0; }
+}
+
+/* little sound-effect words ("HSSSS!", "mew!") that pop up and float away */
+.cat-sfx {
+  position: fixed;
+  z-index: 25;
+  pointer-events: none;
+  white-space: nowrap;
+  font-size: clamp(26px, 5vw, 40px);
+  transform: translateX(-50%);
+  animation: sfx-pop 1.2s ease-out forwards;
+}
+.cat-sfx.is-hiss {
+  color: #ff5d5d;
+  text-shadow: 0 3px 0 #000, 0 0 12px #000;
+}
+.cat-sfx.is-mew {
+  color: yellow;
+  text-shadow: 0 3px 0 #000, 0 0 12px #000;
+}
+@keyframes sfx-pop {
+  0%   { opacity: 0; margin-top: 10px; scale: 0.5; }
+  18%  { opacity: 1; margin-top: 0;    scale: 1.15; }
+  70%  { opacity: 1; scale: 1; }
+  100% { opacity: 0; margin-top: -36px; scale: 1; }
 }
 
 @keyframes cat-bob {

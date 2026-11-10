@@ -479,6 +479,72 @@
     });
   }
 
+  // The cat sounds are made in the browser too: a hiss (filtered noise) and a meow (a pitch-gliding
+  // "ahh" through moving vowel filters).
+  // CAT-SOUNDS-BEGIN
+  function buildHiss(ctx, out, t0) {
+    var len = Math.floor(ctx.sampleRate * 0.9);
+    var buf = ctx.createBuffer(1, len, ctx.sampleRate);
+    var data = buf.getChannelData(0);
+    for (var i = 0; i < len; i++) data[i] = Math.random() * 2 - 1;
+    var src = ctx.createBufferSource(); src.buffer = buf;
+    var hp = ctx.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 3200; hp.Q.value = 0.7;
+    var bp = ctx.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = 6800; bp.Q.value = 0.5;
+    var g = ctx.createGain();
+    g.gain.setValueAtTime(0.0001, t0);
+    g.gain.exponentialRampToValueAtTime(1.0, t0 + 0.05);
+    [[0.12, 0.65], [0.2, 0.95], [0.3, 0.7], [0.4, 0.9], [0.55, 0.55]].forEach(function (pt) {
+      g.gain.linearRampToValueAtTime(pt[1], t0 + pt[0]); // uneven, breathy
+    });
+    g.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.85);
+    src.connect(hp); hp.connect(bp); bp.connect(g); g.connect(out);
+    src.start(t0); src.stop(t0 + 0.9);
+    return [src];
+  }
+  function buildMeow(ctx, out, t0) {
+    var dur = 0.62;
+    var o = ctx.createOscillator(); o.type = 'sawtooth';
+    o.frequency.setValueAtTime(480, t0);
+    o.frequency.linearRampToValueAtTime(720, t0 + 0.18);
+    o.frequency.linearRampToValueAtTime(650, t0 + 0.42);
+    o.frequency.exponentialRampToValueAtTime(380, t0 + dur);
+    var lfo = ctx.createOscillator(); lfo.frequency.value = 7;
+    var lfoGain = ctx.createGain(); lfoGain.gain.value = 10;
+    lfo.connect(lfoGain); lfoGain.connect(o.frequency);
+    var f1 = ctx.createBiquadFilter(); f1.type = 'bandpass'; f1.Q.value = 5;
+    f1.frequency.setValueAtTime(500, t0);
+    f1.frequency.linearRampToValueAtTime(950, t0 + 0.2);
+    f1.frequency.linearRampToValueAtTime(780, t0 + 0.45);
+    f1.frequency.linearRampToValueAtTime(520, t0 + dur);
+    var f2 = ctx.createBiquadFilter(); f2.type = 'bandpass'; f2.Q.value = 6;
+    f2.frequency.setValueAtTime(2200, t0);
+    f2.frequency.linearRampToValueAtTime(1500, t0 + 0.2);
+    f2.frequency.linearRampToValueAtTime(1100, t0 + dur);
+    var g2 = ctx.createGain(); g2.gain.value = 0.6;
+    var g = ctx.createGain();
+    g.gain.setValueAtTime(0.0001, t0);
+    g.gain.exponentialRampToValueAtTime(3.2, t0 + 0.06);
+    g.gain.setValueAtTime(3.2, t0 + 0.4);
+    g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+    o.connect(f1); o.connect(f2); f1.connect(g); f2.connect(g2); g2.connect(g); g.connect(out);
+    o.start(t0); o.stop(t0 + dur + 0.05);
+    lfo.start(t0); lfo.stop(t0 + dur + 0.05);
+    return [o, lfo];
+  }
+  // CAT-SOUNDS-END
+  function playCatSound(build, volume) {
+    try {
+      var ctx = unlockAudio();
+      if (!ctx) return;
+      var out = ctx.createGain();
+      out.gain.value = volume;
+      out.connect(ctx.destination);
+      var srcs = build(ctx, out, ctx.currentTime + 0.02);
+      setTimeout(function () { try { out.disconnect(); } catch (err) {} }, 1500);
+      return srcs;
+    } catch (err) {}
+  }
+
   // Fun: tap the right arrow key 3 times and a pixel cat runs in along the bottom of the screen.
   // Holding an arrow key keeps him running (he loops round the screen); the left arrow turns him
   // round to run the other way. Let go and he finishes crossing and leaves.
@@ -505,7 +571,49 @@
         if (heldDir === -1) { runX = screenW; } else { stopRunner(); return; }
       }
       runner.style.transform = 'translateX(' + runX.toFixed(1) + 'px)';
+      checkFooterCat();
       requestAnimationFrame(runnerTick);
+    };
+    // The footer cat (only there once you've scrolled to the end of the page) and the runner can meet.
+    // When the runner gets close he does a startled hop, the footer cat hisses, and then he meows.
+    var footerForRunner = document.querySelector('.last-block');
+    var peekBox = document.querySelector('.footer-peek');
+    var metFooterCat = false;
+
+    var sayWord = function (text, kind, x, y) {
+      var w = document.createElement('div');
+      w.className = 'cat-sfx is-' + kind;
+      w.setAttribute('aria-hidden', 'true');
+      w.textContent = text;
+      w.style.left = x + 'px';
+      w.style.top = y + 'px';
+      document.body.appendChild(w);
+      setTimeout(function () { w.remove(); }, 1300);
+    };
+    var meetFooterCat = function (catBox) {
+      metFooterCat = true;
+      runner.classList.add('is-hop');
+      setTimeout(function () { runner.classList.remove('is-hop'); }, 500);
+      setTimeout(function () {                       // the hiss
+        footerForRunner.classList.add('is-hissing');
+        setTimeout(function () { footerForRunner.classList.remove('is-hissing'); }, 800);
+        playCatSound(buildHiss, 0.5);
+        sayWord('HSSSS!', 'hiss', catBox.left + catBox.width / 2, catBox.top - 34);
+      }, 260);
+      setTimeout(function () {                       // the meow
+        if (!running) return;
+        playCatSound(buildMeow, 0.45);
+        sayWord('mew!', 'mew', runX + runWidth / 2, window.innerHeight - runner.offsetHeight - 34);
+      }, 950);
+    };
+    var checkFooterCat = function () {
+      if (!footerForRunner || !peekBox || !footerForRunner.classList.contains('is-peeking')) return;
+      var cat = peekBox.getBoundingClientRect();
+      if (!cat.width || cat.right < 0 || cat.left > window.innerWidth) return;
+      var front = runDir > 0 ? runX + runWidth : runX;
+      var gap = runDir > 0 ? cat.left - front : front - cat.right;
+      if (!metFooterCat && gap > 0 && gap <= runWidth * 0.55) meetFooterCat(cat);
+      else if (metFooterCat && gap > runWidth * 2) metFooterCat = false; // looped round: ready to meet again
     };
     var turnRunner = function (dir) {
       runDir = dir;
@@ -513,6 +621,7 @@
     };
     var startRunner = function () {
       running = true;
+      metFooterCat = false;
       runner.hidden = false;
       runWidth = runner.offsetWidth;
       turnRunner(1);
@@ -530,6 +639,7 @@
       if (e.ctrlKey || e.metaKey || e.altKey || e.shiftKey) return;
       var dir = e.key === 'ArrowRight' ? 1 : (e.key === 'ArrowLeft' ? -1 : 0);
       if (!dir) return;
+      unlockAudio(); // a key press counts as the "click" browsers need before they allow sound
       if (running) {
         heldDir = dir;
         turnRunner(dir);
