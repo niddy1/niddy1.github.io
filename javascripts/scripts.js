@@ -22,9 +22,10 @@
     marathon: 'Marathon Man',
     blessing: 'The Blessing',
     purr: 'Purr Factory',
-    laser: 'Fricken Laser Beams'
+    laser: 'Fricken Laser Beams',
+    rainbow: 'Taste the Rainbow'
   };
-  var EGG_ORDER = ['konami', 'flyby', 'chirp', 'marathon', 'blessing', 'purr', 'laser'];
+  var EGG_ORDER = ['konami', 'flyby', 'chirp', 'marathon', 'blessing', 'purr', 'laser', 'rainbow'];
   var eggsFound = {};
   var eggQueue = [];
   var eggBusy = false;
@@ -237,9 +238,16 @@
       });
     }
 
-    swapButton.addEventListener('click', function () {
+    // Change the colours 10 times (the button or the spacebar, by a person, not by the Konami
+    // party) and a pixel rainbow arcs over the cat, then pixel candies rain down.
+    var swapCount = 0;
+    var countSwap = function () {
+      if (++swapCount >= 10) { swapCount = 0; rainbowAndCandy(); }
+    };
+    swapButton.addEventListener('click', function (e) {
       var colors = makePalette();
       applyPalette(colors, makeOrder(colors.length));
+      if (e.isTrusted) countSwap();
     });
 
     // Fun: the spacebar does the same thing as the button (like coolors.co). It stays out of
@@ -249,6 +257,7 @@
       if (e.target && e.target.closest && e.target.closest('a, button, input, textarea, select, [contenteditable]')) return;
       e.preventDefault();
       swapButton.click();
+      countSwap();
     });
 
     // The default look: these six colours, always in this order (pink, yellow, teal, coral,
@@ -1146,6 +1155,88 @@
   document.addEventListener('touchmove', function (e) {    // while the laser is on, the finger steers it, not the page
     if (laserOn) e.preventDefault();
   }, { passive: false });
+
+  // Fun: after 10 colour changes a pixel rainbow draws itself in an arc over the big cat in the
+  // middle of the screen, and then pixel candies rain down from the top and bounce on the "floor".
+  var rainbowBusy = false;
+  var CANDY_COLORS = [['#e0262e', '#9c1218'], ['#f58a1f', '#b0560a'], ['#f7d117', '#b69a05'], ['#3ba935', '#237320'], ['#7a47b8', '#4c2480']];
+  var CANDY_URLS = null;
+  function candyUrls() {
+    if (CANDY_URLS) return CANDY_URLS;
+    var shape = ['..XXX..', '.XXXXX.', 'XXXXXXX', 'XXXXXXX', 'XXXXXXX', '.XXXXX.', '..XXX..'];
+    CANDY_URLS = CANDY_COLORS.map(function (pair) {
+      var c = document.createElement('canvas');
+      c.width = 7; c.height = 7;
+      var g = c.getContext('2d');
+      shape.forEach(function (row, y) {
+        for (var x = 0; x < 7; x++) {
+          if (row[x] !== 'X') continue;
+          g.fillStyle = (x + y >= 8) ? pair[1] : pair[0];
+          g.fillRect(x, y, 1, 1);
+        }
+      });
+      g.fillStyle = 'rgba(255,255,255,0.85)';
+      g.fillRect(2, 1, 1, 1); g.fillRect(1, 2, 1, 1);
+      return c.toDataURL();
+    });
+    return CANDY_URLS;
+  }
+  function rainbowAndCandy() {
+    if (rainbowBusy) return;
+    rainbowBusy = true;
+    foundEgg('rainbow');
+    var vw = window.innerWidth;
+    var vh = window.innerHeight;
+    // the arc, drawn as chunky pixels on a tiny canvas that is then scaled up
+    var R = Math.min(vh * 0.52, vw * 0.44);
+    var u = Math.max(5, Math.round(R / 34));                   // size of one rainbow "pixel"
+    var Rc = Math.floor(R / u);                                // outer radius in pixels
+    var band = Math.max(2, Math.round(Rc / 16));               // thickness of each colour band
+    var legs = Math.round(Rc * 0.25);                           // the ends run straight down a bit
+    var cols = Rc * 2 + 1;
+    var rows = Rc + legs + 1;
+    var colors = ['#e8262f', '#f7861e', '#f9d614', '#3fb14a', '#2b7de0', '#7b3fb4'];
+    var cv = document.createElement('canvas');
+    cv.width = cols; cv.height = rows;
+    var g = cv.getContext('2d');
+    for (var y = 0; y < rows; y++) {
+      for (var x = 0; x < cols; x++) {
+        var dx = x - Rc;
+        var dy = Rc - y;
+        var d = dy >= 0 ? Math.sqrt(dx * dx + dy * dy) : Math.abs(dx);
+        var k = Math.floor((Rc + 0.5 - d) / band);
+        if (k >= 0 && k < colors.length) { g.fillStyle = colors[k]; g.fillRect(x, y, 1, 1); }
+      }
+    }
+    cv.className = 'pixel-rainbow';
+    cv.setAttribute('aria-hidden', 'true');
+    cv.style.width = cols * u + 'px';
+    cv.style.height = rows * u + 'px';
+    cv.style.left = (vw / 2 - cols * u / 2) + 'px';
+    cv.style.top = (vh * 0.68 - Rc * u) + 'px';
+    document.body.appendChild(cv);
+    // then the candy
+    var urls = candyUrls();
+    var rain = document.createElement('div');
+    rain.className = 'candy-rain';
+    rain.setAttribute('aria-hidden', 'true');
+    var size = vw < 700 ? 28 : 35;
+    for (var i = 0; i < 70; i++) {
+      var c = document.createElement('div');
+      c.className = 'candy';
+      c.style.backgroundImage = 'url(' + urls[i % urls.length] + ')';
+      c.style.setProperty('--x', (Math.random() * 96 + 1).toFixed(1) + '%');
+      c.style.setProperty('--floor', (vh - size - Math.random() * 40).toFixed(0) + 'px');
+      c.style.setProperty('--spin', (Math.random() * 540 - 270).toFixed(0) + 'deg');
+      c.style.setProperty('--dur', (1.6 + Math.random() * 1.4).toFixed(2) + 's');
+      c.style.setProperty('--delay', (1.8 + Math.random() * 3.2).toFixed(2) + 's');
+      c.style.width = c.style.height = size + 'px';
+      rain.appendChild(c);
+    }
+    document.body.appendChild(rain);
+    setTimeout(function () { cv.remove(); }, 8500);
+    setTimeout(function () { rain.remove(); rainbowBusy = false; }, 11500);
+  }
 
   // Fun: a pixel bird flies across the whole page in a gentle swooping wave. Press and hold anywhere for two seconds
   // to call him (he also drops by on his own, now and then). If the running cat is out on the ground, he

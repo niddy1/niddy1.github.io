@@ -842,3 +842,51 @@ p {
 @media (pointer: coarse) {
   body { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
 }
+
+/* the pixel rainbow over the cat, and the pixel candy that rains afterwards */
+.pixel-rainbow {
+  position: fixed;
+  z-index: 18;
+  pointer-events: none;
+  image-rendering: pixelated;
+  clip-path: inset(0 100% 0 0);
+  animation: rainbow-draw 1.6s steps(28) forwards, rainbow-out 0.9s ease-in 7.4s forwards;
+}
+@keyframes rainbow-draw {
+  to { clip-path: inset(0 0 0 0); }
+}
+@keyframes rainbow-out {
+  to { opacity: 0; }
+}
+.candy-rain {
+  position: fixed;
+  top: 0; right: 0; bottom: 0; left: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 31;
+}
+.candy {
+  position: absolute;
+  top: 0;
+  left: var(--x);
+  background-size: 100% 100%;
+  image-rendering: pixelated;
+  opacity: 0;
+  animation: candy-fall var(--dur) cubic-bezier(0.45, 0, 0.9, 0.6) var(--delay) both,
+             candy-spin var(--dur) linear var(--delay) both,
+             candy-fade 0.8s ease-in calc(var(--delay) + var(--dur) + 2s) both;
+}
+@keyframes candy-fall {
+  0%   { opacity: 1; translate: 0 -60px; }
+  78%  { opacity: 1; translate: 0 var(--floor); animation-timing-function: ease-out; }
+  88%  { opacity: 1; translate: 0 calc(var(--floor) - 34px); animation-timing-function: ease-in; }
+  100% { opacity: 1; translate: 0 var(--floor); }
+}
+@keyframes candy-spin {
+  from { rotate: 0deg; }
+  to   { rotate: var(--spin); }
+}
+@keyframes candy-fade {
+  from { opacity: 1; }
+  to   { opacity: 0; }
+}
