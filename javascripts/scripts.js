@@ -24,9 +24,11 @@
     purr: 'Purr Factory',
     laser: 'Fricken Laser Beams',
     rainbow: 'Taste the Rainbow',
-    kraven: 'Kraven the Hunter'
+    kraven: 'Kraven the Hunter',
+    hissy: 'Hissy Fit',
+    bop: 'Bop'
   };
-  var EGG_ORDER = ['konami', 'flyby', 'chirp', 'marathon', 'blessing', 'purr', 'laser', 'rainbow', 'kraven'];
+  var EGG_ORDER = ['konami', 'flyby', 'chirp', 'marathon', 'blessing', 'purr', 'laser', 'rainbow', 'kraven', 'hissy', 'bop'];
   var eggsFound = {};
   var eggQueue = [];
   var eggBusy = false;
@@ -847,6 +849,7 @@
     var hissFooterCat = function (catBox) {
       footerForRunner.classList.add('is-hissing');
       setTimeout(function () { footerForRunner.classList.remove('is-hissing'); }, 800);
+      foundEgg('hissy');
       playCatSound(buildHiss, 0.17);
       sayWord('HSSSS!', 'hiss', catBox.left + catBox.width / 2, catBox.top - 34);
     };
@@ -855,6 +858,7 @@
       if (jumpY > 12) {                              // in the air: leap over!
         leaping = true;
         leapHissed = false;
+        foundEgg('bop');
         sayWord('hup!', 'mew', runX + runWidth / 2, window.innerHeight - runner.offsetHeight - jumpY - 34);
         return;
       }
