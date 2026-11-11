@@ -352,7 +352,6 @@
     clearTimeout(typedTimer);
     typedTimer = setTimeout(function () { typed = ''; }, 1500);
     if (typed.slice(-3) === 'cat') { typed = ''; catRain(); }
-    else if (e.key.toLowerCase() === 'b') { flyBird(); }
   });
   // Fun: pet the cat in the footer (click or tap): hearts float up and he purrs. Pet him 10 times
   // (each within a few seconds of the last) and he goes full happy-wiggle, with a big purr, a burst
@@ -989,8 +988,165 @@
     window.addEventListener('blur', function () { heldDir = 0; }); // key-up can get lost if you switch windows
   }
 
-  // Fun: a pixel bird flies across the whole page in a gentle swooping wave. Press the B key to
-  // call him (he also drops by on his own, now and then). If the running cat is out on the ground, he
+  // Fun: press and hold (mouse button or finger) without moving.
+  //   2 seconds         -> a bird flies by (see below)
+  //   Shift + hold (mouse), or 4 seconds (finger) -> a red laser dot appears under the pointer and
+  //                        Mookie (seen from above this time) chases it around until you let go.
+  // When you let go he pounces, then trots off the nearest edge of the screen.
+  var laser = document.getElementById('laser');
+  var chaser = document.getElementById('chaser');
+  var pressing = false;
+  var pressType = 'mouse';
+  var birdTimer = null;
+  var laserTimer = null;
+  var swallowClick = false;
+  var laserOn = false;
+  var pointerX = 0;
+  var pointerY = 0;
+  var pressX = 0;
+  var pressY = 0;
+  var chase = null;   // the chase state while Mookie is out on the screen
+
+  function isInteractive(t) {
+    return !!(t && t.closest && t.closest('a, button, #mookie, .footer-cat, input, textarea, select'));
+  }
+  function cancelPress() { clearTimeout(birdTimer); clearTimeout(laserTimer); }
+  function mookieIsOpen() { return typeof mookieOpen !== 'undefined' && mookieOpen; }
+
+  function startChase() {
+    var w = chaser.offsetWidth || 72;
+    var h = chaser.offsetHeight || 96;
+    if (chase) { chase.leaving = false; return; }
+    var sx, sy;
+    if (typeof running !== 'undefined' && running) {      // he was running along the bottom: carry on from there
+      sx = runX + runWidth / 2;
+      sy = window.innerHeight - 70;
+      stopRunner();
+    } else {                                              // otherwise he pops up from just below the screen
+      sx = Math.max(40, Math.min(window.innerWidth - 40, pointerX));
+      sy = window.innerHeight + h;
+    }
+    chase = { x: sx, y: sy, angle: 0, w: w, h: h, leaving: false, idle: false, exitX: 0, exitY: 0, last: performance.now() };
+    chaser.hidden = false;
+    chaser.classList.remove('is-idle');
+    chaser.style.translate = (sx - w / 2) + 'px ' + (sy - h / 2) + 'px';
+    chaser.style.rotate = '0deg';
+    requestAnimationFrame(chaseTick);
+  }
+  function chaseTick(now) {
+    if (!chase) return;
+    var c = chase;
+    var dt = Math.min(0.05, (now - c.last) / 1000);
+    c.last = now;
+    var tx = c.leaving ? c.exitX : pointerX;
+    var ty = c.leaving ? c.exitY : pointerY;
+    var dx = tx - c.x;
+    var dy = ty - c.y;
+    var dist = Math.sqrt(dx * dx + dy * dy);
+    var stop = c.leaving ? 0 : 22;
+    if (dist > stop) {
+      var maxV = Math.max(320, window.innerWidth * 0.32);
+      var speed = c.leaving ? maxV * 0.8 : Math.min(maxV, 70 + dist * 4.5);
+      var step = Math.min(dist, speed * dt);
+      c.x += dx / dist * step;
+      c.y += dy / dist * step;
+      // face the way he's going, in 45-degree steps (and don't flip-flop near the boundary)
+      var deg = Math.atan2(dx, -dy) * 180 / Math.PI;
+      var diff = ((deg - c.angle) % 360 + 540) % 360 - 180;
+      if (Math.abs(diff) > 32) c.angle += Math.round(diff / 45) * 45;
+      if (c.idle) { c.idle = false; chaser.classList.remove('is-idle', 'is-pounce'); }
+    } else if (!c.idle && !c.leaving) {
+      c.idle = true;                                      // caught up with the dot: stop, and pounce
+      chaser.classList.add('is-idle');
+      chaser.classList.remove('is-pounce');
+      void chaser.offsetWidth;
+      chaser.classList.add('is-pounce');
+    }
+    chaser.style.translate = (c.x - c.w / 2).toFixed(1) + 'px ' + (c.y - c.h / 2).toFixed(1) + 'px';
+    chaser.style.rotate = c.angle + 'deg';
+    if (c.leaving && (c.x < -c.w || c.x > window.innerWidth + c.w || c.y < -c.h || c.y > window.innerHeight + c.h)) {
+      chaser.hidden = true;
+      chaser.classList.remove('is-idle', 'is-pounce');
+      chase = null;
+      return;
+    }
+    requestAnimationFrame(chaseTick);
+  }
+  function startLaser() {
+    if (laserOn || mookieIsOpen() || !laser || !chaser) return;
+    laserOn = true;
+    swallowClick = true;
+    cancelPress();
+    laser.hidden = false;
+    laser.style.translate = pointerX + 'px ' + pointerY + 'px';
+    if (typeof unlockAudio === 'function') unlockAudio();
+    startChase();
+  }
+  function endLaser() {
+    if (!laserOn) return;
+    laserOn = false;
+    laser.hidden = true;
+    if (chase) {
+      var c = chase;
+      c.leaving = true;
+      var w = window.innerWidth, h = window.innerHeight;
+      var edges = [[c.x, 0, -c.w - 20, c.y], [w - c.x, 1, w + c.w + 20, c.y], [c.y, 2, c.x, -c.h - 20], [h - c.y, 3, c.x, h + c.h + 20]];
+      edges.sort(function (a, b) { return a[0] - b[0]; });
+      c.exitX = edges[0][2];
+      c.exitY = edges[0][3];
+      chaser.classList.remove('is-idle');
+      if (typeof sayWord === 'function' && c.y < h && c.y > 0) sayWord('mrrp!', 'mew', c.x, Math.max(30, c.y - c.h / 2 - 10));
+    }
+  }
+
+  document.addEventListener('mousedown', function (e) {   // shift+click would otherwise select text
+    if (e.shiftKey && !isInteractive(e.target)) e.preventDefault();
+  });
+  document.addEventListener('pointerdown', function (e) {
+    if (e.button > 0 || isInteractive(e.target) || mookieIsOpen()) return;
+    pressing = true;
+    pressType = e.pointerType || 'mouse';
+    swallowClick = false;
+    pointerX = pressX = e.clientX;
+    pointerY = pressY = e.clientY;
+    cancelPress();
+    if (pressType === 'mouse' && e.shiftKey) {
+      startLaser();
+    } else {
+      birdTimer = setTimeout(function () { swallowClick = true; flyBird(); }, 2000);
+      if (pressType !== 'mouse') laserTimer = setTimeout(startLaser, 4000);
+    }
+  });
+  document.addEventListener('pointermove', function (e) {
+    if (!pressing) return;
+    pointerX = e.clientX;
+    pointerY = e.clientY;
+    if (laserOn) {
+      laser.style.translate = pointerX + 'px ' + pointerY + 'px';
+    } else if (Math.abs(pointerX - pressX) > 14 || Math.abs(pointerY - pressY) > 14) {
+      cancelPress();   // moved too much: not a hold
+    }
+  });
+  function releasePress() {
+    pressing = false;
+    cancelPress();
+    endLaser();
+    setTimeout(function () { swallowClick = false; }, 120);
+  }
+  document.addEventListener('pointerup', releasePress);
+  document.addEventListener('pointercancel', releasePress);
+  document.addEventListener('click', function (e) {       // the release after a hold isn't a real click
+    if (swallowClick) { swallowClick = false; e.stopPropagation(); e.preventDefault(); }
+  }, true);
+  document.addEventListener('contextmenu', function (e) {  // a long press on a phone would open a menu
+    if (pressing && pressType !== 'mouse') e.preventDefault();
+  });
+  document.addEventListener('touchmove', function (e) {    // while the laser is on, the finger steers it, not the page
+    if (laserOn) e.preventDefault();
+  }, { passive: false });
+
+  // Fun: a pixel bird flies across the whole page in a gentle swooping wave. Press and hold anywhere for two seconds
+  // to call him (he also drops by on his own, now and then). If the running cat is out on the ground, he
   // stops and chirps at the bird, then runs on. Hold the right arrow to keep him looping round
   // the screen so he's there when the bird arrives.
   var bird = document.getElementById('bird');
