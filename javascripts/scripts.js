@@ -286,10 +286,11 @@
   window.addEventListener('keydown', function (e) {
     if (e.key.length !== 1 || e.ctrlKey || e.metaKey || e.altKey) return;
     if (e.target && e.target.closest && e.target.closest('input, textarea, select, [contenteditable]')) return;
-    typed = (typed + e.key.toLowerCase()).slice(-3);
+    typed = (typed + e.key.toLowerCase()).slice(-4);
     clearTimeout(typedTimer);
     typedTimer = setTimeout(function () { typed = ''; }, 1500);
-    if (typed === 'cat') { typed = ''; catRain(); }
+    if (typed.slice(-3) === 'cat') { typed = ''; catRain(); }
+    else if (typed === 'bird') { typed = ''; flyBird(); }
   });
   // Fun: pet the cat in the footer (click or tap): hearts float up and he purrs. Pet him 10 times
   // (each within a few seconds of the last) and he goes full happy-wiggle, with a big purr, a burst
@@ -311,6 +312,23 @@
     var petCount = 0;
     var petTimer = null;
     var lastPurr = 0;
+    var purrEl = null;
+    // the happy purr: Mookie's real purr on a loop for about 3 seconds, then fading out
+    var bigPurr = function () {
+      if (purrEl) purrEl.pause();
+      var loud = playSample('purr', 1, function () {
+        playCatSound(function (ctx, out, t0) { return buildPurr(ctx, out, t0, 2.6); }, 1.0);
+      });
+      if (!loud) return;
+      loud.loop = true;
+      purrEl = loud;
+      setTimeout(function () {
+        var fade = setInterval(function () {
+          if (loud.volume > 0.12) { loud.volume = Math.max(0, loud.volume - 0.12); }
+          else { clearInterval(fade); loud.pause(); }
+        }, 60);
+      }, 2600);
+    };
     footerCatEl.addEventListener('click', function () {
       unlockAudio();
       var box = footerCatEl.getBoundingClientRect();
@@ -321,7 +339,11 @@
       var now = Date.now();
       if (now - lastPurr > 650) {
         lastPurr = now;
-        playCatSound(function (ctx, out, t0) { return buildPurr(ctx, out, t0, 1.1); }, 0.9);
+        if (!purrEl || purrEl.paused || purrEl.ended) {
+          purrEl = playSample('purr', 0.85, function () {
+            playCatSound(function (ctx, out, t0) { return buildPurr(ctx, out, t0, 1.1); }, 0.9);
+          });
+        }
       }
       petCount++;
       clearTimeout(petTimer);
@@ -332,7 +354,7 @@
         void footerCatEl.offsetWidth;
         footerCatEl.classList.add('is-happy');
         setTimeout(function () { footerCatEl.classList.remove('is-happy'); }, 1400);
-        playCatSound(function (ctx, out, t0) { return buildPurr(ctx, out, t0, 2.6); }, 1.0);
+        bigPurr();
         for (var k = 0; k < 14; k++) {
           (function (delay) {
             setTimeout(function () {
@@ -661,6 +683,39 @@
     return [n, lfo];
   }
   // CAT-SOUNDS-END
+  // Mookie's real voice: three short recordings in /sounds. If one can't play (or can't load) the
+  // synthesized version is used instead, so there's always a sound.
+  var SAMPLE_FILES = {
+    meow:  'sounds/mookie-meow.mp3',
+    purr:  'sounds/mookie-purr.mp3',
+    chirp: 'sounds/mookie-chirp.mp3'
+  };
+  var sampleEls = {};
+  function sampleEl(name) {
+    if (!sampleEls[name]) {
+      var a = new Audio(SAMPLE_FILES[name]);
+      a.preload = 'auto';
+      sampleEls[name] = a;
+    }
+    return sampleEls[name];
+  }
+  Object.keys(SAMPLE_FILES).forEach(sampleEl); // start loading them now (they're tiny)
+  // plays a copy of the recording (so quick repeats can overlap); returns it, or null
+  function playSample(name, volume, fallback) {
+    try {
+      var el = sampleEl(name);
+      if (el.error) { if (fallback) fallback(); return null; }
+      var c = el.cloneNode();
+      c.volume = volume;
+      var started = c.play();
+      if (started && started.catch) started.catch(function () { if (fallback) fallback(); });
+      return c;
+    } catch (err) {
+      if (fallback) fallback();
+      return null;
+    }
+  }
+
   function playCatSound(build, volume) {
     try {
       var ctx = unlockAudio();
@@ -698,6 +753,7 @@
     var jumpV = 0;          // how fast he's going up (px per second)
     var leaping = false;    // flying over the footer cat
     var leapHissed = false;
+    var chirpHold = 0;      // seconds left standing still, chirping at a bird
     var GRAVITY = 2400;
     var JUMP_SPEED = 820;   // a hop about 140px high that takes ~0.7 seconds
 
@@ -730,7 +786,7 @@
       setTimeout(function () { hissFooterCat(peekBox.getBoundingClientRect()); }, 260);
       setTimeout(function () {                       // the meow
         if (!running) return;
-        playCatSound(buildMeow, 0.8);
+        playSample('meow', 1, function () { playCatSound(buildMeow, 0.8); });
         sayWord('mew!', 'mew', runX + runWidth / 2, window.innerHeight - runner.offsetHeight - 34);
       }, 950);
     };
@@ -742,6 +798,20 @@
       var gap = runDir > 0 ? cat.left - front : front - cat.right;
       if (!metFooterCat && gap > 0 && gap <= runWidth * 0.55) meetFooterCat(cat);
       else if (metFooterCat && gap > runWidth * 2) metFooterCat = false; // looped round: ready to meet again
+    };
+    // If the bird flies close while he's running on the ground, he stops, stares and chirps at it,
+    // then carries on.
+    var checkBird = function () {
+      if (!birdActive || birdChirped || chirpHold > 0 || jumpY > 3 || leaping || runner.classList.contains('is-hop')) return;
+      var runMid = runX + runWidth / 2;
+      var birdMid = birdX + birdW / 2;
+      if (runMid < 0 || runMid > window.innerWidth || birdMid < 0 || birdMid > window.innerWidth) return; // both must be on screen
+      if (Math.abs(runMid - birdMid) > Math.max(260, runWidth * 0.9)) return;
+      birdChirped = true;
+      chirpHold = 1.5;
+      runner.classList.add('is-watching');
+      playSample('chirp', 1);
+      sayWord('chrrp!', 'mew', runX + runWidth / 2, window.innerHeight - runner.offsetHeight - 34);
     };
     // up/down movement: a jump, or a glide over the footer cat's head
     var stepJump = function (dt) {
@@ -771,7 +841,12 @@
       if (!running) return;
       var dt = Math.min(0.05, (now - lastFrame) / 1000);
       lastFrame = now;
-      runX += runDir * runWidth * 1.5 * dt; // about one and a half cat-lengths per second
+      var still = chirpHold > 0;           // stopped to chirp at a passing bird
+      if (still) {
+        chirpHold -= dt;
+        if (chirpHold <= 0) runner.classList.remove('is-watching');
+      }
+      runX += still ? 0 : runDir * runWidth * 1.5 * dt; // about one and a half cat-lengths per second
       var screenW = window.innerWidth;
       if (runDir > 0 && runX > screenW) {
         if (heldDir === 1) { runX = -runWidth; } else { stopRunner(); return; }
@@ -780,6 +855,7 @@
       }
       runner.style.transform = 'translateX(' + runX.toFixed(1) + 'px)';
       checkFooterCat();
+      checkBird();
       stepJump(dt);
       requestAnimationFrame(runnerTick);
     };
@@ -790,7 +866,8 @@
     var startRunner = function () {
       running = true;
       metFooterCat = false;
-      jumpY = 0; jumpV = 0; leaping = false;
+      jumpY = 0; jumpV = 0; leaping = false; chirpHold = 0;
+      runner.classList.remove('is-watching');
       runner.style.translate = '';
       runner.classList.remove('is-airborne');
       runner.hidden = false;
@@ -804,6 +881,8 @@
     var stopRunner = function () {
       running = false;
       leaping = false;
+      chirpHold = 0;
+      runner.classList.remove('is-watching');
       runner.hidden = true;
     };
 
@@ -839,6 +918,55 @@
     window.addEventListener('blur', function () { heldDir = 0; }); // key-up can get lost if you switch windows
   }
 
+  // Fun: a pixel bird flies across the whole page in a gentle swooping wave. Type "bird" to call
+  // him (he also drops by on his own, now and then). If the running cat is out on the ground, he
+  // stops and chirps at the bird, then runs on. Hold the right arrow to keep him looping round
+  // the screen so he's there when the bird arrives.
+  var bird = document.getElementById('bird');
+  var birdActive = false;
+  var birdChirped = false;
+  var birdX = -9999;
+  var birdW = 0;
+  function flyBird() {
+    if (!bird || birdActive) return;
+    birdActive = true;
+    birdChirped = false;
+    bird.hidden = false;
+    birdW = bird.offsetWidth;
+    var screenW = window.innerWidth;
+    var screenH = window.innerHeight;
+    var dir = Math.random() < 0.5 ? 1 : -1;               // 1 = flying right (the picture faces left)
+    bird.classList.toggle('is-right', dir > 0);
+    var travel = screenW + birdW;
+    var duration = Math.min(9.5, Math.max(5, travel / 240));
+    var baseY = screenH * (0.16 + Math.random() * 0.14);
+    var swoop = 45 + Math.random() * 55;                   // how tall the waves are
+    var waves = 1.4 + Math.random() * 1.2;                 // how many waves across the screen
+    var start = null;
+    var frame = function (now) {
+      if (start === null) start = now;
+      var p = (now - start) / 1000 / duration;
+      if (p >= 1) {
+        birdActive = false;
+        birdX = -9999;
+        bird.hidden = true;
+        return;
+      }
+      birdX = dir > 0 ? -birdW + p * travel : screenW - p * travel;
+      // a smooth wave, and he dips a bit lower through the middle of the page
+      var y = baseY + swoop * Math.sin(p * waves * 2 * Math.PI) + Math.sin(p * Math.PI) * screenH * 0.12;
+      bird.style.transform = 'translate(' + birdX.toFixed(1) + 'px,' + y.toFixed(1) + 'px)';
+      requestAnimationFrame(frame);
+    };
+    requestAnimationFrame(frame);
+  }
+  // now and then a bird just drops by, once per visit at most, a minute or two after you arrive
+  if (bird && !reduceMotion) {
+    setTimeout(function () {
+      if (Math.random() < 0.4 && !document.hidden && !(typeof mookieOpen !== 'undefined' && mookieOpen)) flyBird();
+    }, 60000 + Math.random() * 90000);
+  }
+
   // Fun: the Konami code (up up down down left right left right B A) throws a party: the colours
   // flow from palette to palette, it rains cats, the running cat joins in, and then Mookie
   // arrives to bless everyone. (The colours fade slowly, never flash, and sit still if you have
@@ -852,6 +980,7 @@
     if (partyOn || (typeof mookieOpen !== 'undefined' && mookieOpen)) return;
     partyOn = true;
     catRain();
+    flyBird();
     if (typeof startRunner === 'function' && !running) { heldDir = 0; startRunner(); }
     var swaps = 0;
     var swapTimer = null;

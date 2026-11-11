@@ -484,6 +484,41 @@ p {
 
 /* the running cat's startled hop (uses the separate "translate" property so it doesn't fight
    the left/right movement, which uses "transform") */
+.runner.is-watching .runner-sprite {
+  animation: none;
+  background-position: calc(-760px * var(--rs)) 0; /* frame 6: standing upright, watching the bird */
+}
+/* the bird: 7 wing-flap frames side by side (38 x 36 each); --bs is how many times bigger he's drawn.
+   The picture faces left, so .is-right flips him when he flies the other way. */
+.bird {
+  --bs: 4;
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 22;
+  pointer-events: none;
+  will-change: transform;
+}
+.bird[hidden] {
+  display: none;
+}
+.bird-sprite {
+  width: calc(38px * var(--bs));
+  height: calc(36px * var(--bs));
+  background: url('images/bird.png') 0 0 / calc(266px * var(--bs)) calc(36px * var(--bs)) no-repeat;
+  image-rendering: pixelated;
+  animation: bird-flap 700ms steps(7) infinite;
+}
+.bird.is-right .bird-sprite {
+  transform: scaleX(-1);
+}
+@keyframes bird-flap {
+  from { background-position-x: 0; }
+  to   { background-position-x: calc(-266px * var(--bs)); }
+}
+@media (max-width: 700px) {
+  .bird { --bs: 3; }
+}
 .runner.is-airborne .runner-sprite {
   animation: none;
   background-position: calc(-304px * var(--rs)) 0; /* legs stretched out while he's in the air */
