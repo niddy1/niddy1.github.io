@@ -21,9 +21,10 @@
     chirp: 'You chirping at me??',
     marathon: 'Marathon Man',
     blessing: 'The Blessing',
-    purr: 'Purr Factory'
+    purr: 'Purr Factory',
+    laser: 'Fricken Laser Beams'
   };
-  var EGG_ORDER = ['konami', 'flyby', 'chirp', 'marathon', 'blessing', 'purr'];
+  var EGG_ORDER = ['konami', 'flyby', 'chirp', 'marathon', 'blessing', 'purr', 'laser'];
   var eggsFound = {};
   var eggQueue = [];
   var eggBusy = false;
@@ -1075,6 +1076,7 @@
   function startLaser() {
     if (laserOn || mookieIsOpen() || !laser || !chaser) return;
     laserOn = true;
+    foundEgg('laser');
     swallowClick = true;
     cancelPress();
     laser.hidden = false;

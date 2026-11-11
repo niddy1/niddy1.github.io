@@ -309,7 +309,7 @@ p {
 /* Easter egg: tap the right arrow 3 times and a pixel cat runs along the bottom of the screen.
    The sprite sheet is 6 frames side by side (152 x 128 each); --rs is how many times bigger it's drawn. */
 .runner {
-  --rs: 2;
+  --rs: 1.7;
   position: fixed;
   left: 0;
   bottom: 0;
@@ -335,7 +335,7 @@ p {
   to   { background-position-x: calc(-912px * var(--rs)); }
 }
 @media (max-width: 700px) {
-  .runner { --rs: 1; }
+  .runner { --rs: 0.85; }
 }
 
 /* Easter egg: 10 clicks and Mookie drops down from the top of the screen into a spotlight */
@@ -811,7 +811,7 @@ p {
   to   { scale: 1.1; }
 }
 .chaser {
-  --cs: 3;
+  --cs: 4;
   position: fixed;
   left: 0; top: 0;
   z-index: 23;
@@ -820,7 +820,7 @@ p {
   height: calc(32px * var(--cs));
   transition: rotate 0.14s linear;
 }
-@media (max-width: 700px) { .chaser { --cs: 2; } }
+@media (max-width: 700px) { .chaser { --cs: 3; } }
 .chaser-sprite {
   width: 100%; height: 100%;
   background: url('images/chaser.png') 0 0 / calc(120px * var(--cs)) calc(32px * var(--cs)) no-repeat;
