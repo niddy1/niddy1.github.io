@@ -26,9 +26,10 @@
     rainbow: 'Taste the Rainbow',
     kraven: 'Kraven the Hunter',
     hissy: 'Hissy Fit',
-    bop: 'Bop'
+    bop: 'Bop',
+    scrollmaster: 'Scroll Master'
   };
-  var EGG_ORDER = ['konami', 'flyby', 'chirp', 'marathon', 'blessing', 'purr', 'laser', 'rainbow', 'kraven', 'hissy', 'bop'];
+  var EGG_ORDER = ['konami', 'flyby', 'chirp', 'marathon', 'blessing', 'purr', 'laser', 'rainbow', 'kraven', 'hissy', 'bop', 'scrollmaster'];
   var eggsFound = {};
   var eggQueue = [];
   var eggBusy = false;
@@ -606,8 +607,10 @@
       mookieHideTimer = setTimeout(function () { mookie.hidden = true; }, 750);
     };
     var blessingPending = false;
+    var mookieOpenedAt = 0;
     var openMookie = function () {
       mookieOpen = true;
+      mookieOpenedAt = performance.now();
       blessingPending = true;
       clearTimeout(mookieHideTimer);
       mookie.hidden = false;
@@ -625,7 +628,10 @@
       if (clickCount === 6) new Image().src = 'css/images/mookie.webp'; // get him ready
       if (clickCount >= 10) { clickCount = 0; openMookie(); }
     });
-    mookie.addEventListener('click', closeMookie);
+    mookie.addEventListener('click', function () {
+      if (performance.now() - mookieOpenedAt < 1500) return;   // fast clickers can't close him before he has really shown up
+      closeMookie();
+    });
     document.addEventListener('keydown', function (e) {
       if (e.key === 'Escape') closeMookie();
     });
@@ -1189,7 +1195,6 @@
   function rainbowAndCandy() {
     if (rainbowBusy) return;
     rainbowBusy = true;
-    foundEgg('rainbow');
     var vw = window.innerWidth;
     var vh = window.innerHeight;
     // the arc, drawn as chunky pixels on a tiny canvas that is then scaled up
@@ -1240,7 +1245,11 @@
     }
     document.body.appendChild(rain);
     setTimeout(function () { cv.remove(); }, 8500);
-    setTimeout(function () { rain.remove(); rainbowBusy = false; }, 11500);
+    setTimeout(function () {
+      rain.remove();
+      rainbowBusy = false;
+      foundEgg('rainbow');   // the notepad waits until the rainbow and candy are gone, so it can't block them
+    }, 11500);
   }
 
   // Fun: a pixel bird flies across the whole page in a gentle swooping wave. Press and hold anywhere for two seconds
@@ -1547,6 +1556,7 @@
     link.addEventListener('click', function (e) {
       e.preventDefault();
       scrollRun++;
+      foundEgg('scrollmaster');
       if (reduceMotion) {
         window.scrollTo(0, 0);
         return;

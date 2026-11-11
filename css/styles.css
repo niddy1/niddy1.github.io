@@ -739,10 +739,11 @@ p {
   box-sizing: border-box;
   color: #25344f;
   font-family: 'Caveat', 'Comic Sans MS', cursive;
+  --lh: 32px;
   font-size: 25px;
-  line-height: 32px;
+  line-height: var(--lh);
   background-color: #fff8b5;
-  background-image: repeating-linear-gradient(to bottom, transparent 0 31px, #a9c7e8 31px 32px);
+  background-image: repeating-linear-gradient(to bottom, transparent 0 calc(var(--lh) - 1px), #a9c7e8 calc(var(--lh) - 1px) var(--lh));
   background-position: 0 40px;
   background-repeat: repeat-y;
   border-radius: 3px;
@@ -921,4 +922,9 @@ p {
 .bird.is-hit .bird-sprite {
   animation: none;
   background-position-x: calc(-76px * var(--bs));
+}
+
+@media (max-width: 700px) {
+  .egg-pad { --lh: 25px; font-size: 20px; width: min(240px, 64vw); padding-top: 34px; background-position: 0 34px; }
+  .egg-title { font-size: 23px; }
 }
