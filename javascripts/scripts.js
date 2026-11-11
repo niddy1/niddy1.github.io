@@ -12,6 +12,68 @@
 
   var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
+  // The easter-egg notepad. Each hidden thing has a name on the list; the first time you find one,
+  // a sheet of notepad slides in from the top with all the names (just the names, no hints) and the
+  // one you found gets crossed off in red ink. The list starts fresh on every page load.
+  var EGGS = {
+    konami: 'Konami Code',
+    flyby: 'Fly By',
+    chirp: 'You chirping at me??',
+    marathon: 'Marathon Man',
+    blessing: 'The Blessing',
+    purr: 'Purr Factory'
+  };
+  var EGG_ORDER = ['konami', 'flyby', 'chirp', 'marathon', 'blessing', 'purr'];
+  var eggsFound = {};
+  var eggQueue = [];
+  var eggBusy = false;
+  var eggPad = null;
+  var eggItems = {};
+  var eggHideTimer = null;
+  function buildEggPad() {
+    eggPad = document.createElement('div');
+    eggPad.className = 'egg-pad';
+    eggPad.setAttribute('aria-hidden', 'true');
+    var title = document.createElement('div');
+    title.className = 'egg-title';
+    title.textContent = 'Easter eggs';
+    eggPad.appendChild(title);
+    EGG_ORDER.forEach(function (id) {
+      var row = document.createElement('div');
+      row.className = 'egg-row';
+      var name = document.createElement('span');
+      name.className = 'egg-name';
+      name.textContent = EGGS[id];
+      row.appendChild(name);
+      eggPad.appendChild(row);
+      eggItems[id] = row;
+    });
+    document.body.appendChild(eggPad);
+  }
+  function runEggQueue() {
+    if (eggBusy) return;
+    if (!eggQueue.length) {
+      eggHideTimer = setTimeout(function () { if (eggPad) eggPad.classList.remove('is-open'); }, 4500);
+      return;
+    }
+    eggBusy = true;
+    clearTimeout(eggHideTimer);
+    var id = eggQueue.shift();
+    var wasOpen = eggPad.classList.contains('is-open');
+    eggPad.classList.add('is-open');
+    setTimeout(function () {
+      eggItems[id].classList.add('is-crossed');
+      setTimeout(function () { eggBusy = false; runEggQueue(); }, 1300);
+    }, wasOpen ? 250 : 1000);
+  }
+  function foundEgg(id) {
+    if (!EGGS[id] || eggsFound[id]) return;
+    eggsFound[id] = true;
+    if (!eggPad) buildEggPad();
+    eggQueue.push(id);
+    runEggQueue();
+  }
+
   // 1. Phone/touch: put each description inside its block
   Array.prototype.forEach.call(loop.querySelectorAll('[data-desc]'), function (link) {
     var desc = document.getElementById('desc-' + link.getAttribute('data-desc'));
@@ -271,7 +333,7 @@
     var meow = document.createElement('div');
     meow.className = 'cat-meow';
     meow.setAttribute('aria-hidden', 'true');
-    meow.textContent = 'meow!';
+    meow.textContent = 'purrrrr!';
     document.body.appendChild(rain);
     document.body.appendChild(meow);
     setTimeout(function () {
@@ -290,7 +352,7 @@
     clearTimeout(typedTimer);
     typedTimer = setTimeout(function () { typed = ''; }, 1500);
     if (typed.slice(-3) === 'cat') { typed = ''; catRain(); }
-    else if (typed === 'bird') { typed = ''; flyBird(); }
+    else if (e.key.toLowerCase() === 'b') { flyBird(); }
   });
   // Fun: pet the cat in the footer (click or tap): hearts float up and he purrs. Pet him 10 times
   // (each within a few seconds of the last) and he goes full happy-wiggle, with a big purr, a burst
@@ -350,6 +412,7 @@
       petTimer = setTimeout(function () { petCount = 0; }, 4000);
       if (petCount >= 10) {
         petCount = 0;
+        foundEgg('purr');
         footerCatEl.classList.remove('is-happy');
         void footerCatEl.offsetWidth;
         footerCatEl.classList.add('is-happy');
@@ -527,10 +590,13 @@
       clearTimeout(mookieTimer);
       mookie.classList.remove('is-on');
       stopHolySound();
+      if (blessingPending) { blessingPending = false; setTimeout(function () { foundEgg('blessing'); }, 900); }
       mookieHideTimer = setTimeout(function () { mookie.hidden = true; }, 750);
     };
+    var blessingPending = false;
     var openMookie = function () {
       mookieOpen = true;
+      blessingPending = true;
       clearTimeout(mookieHideTimer);
       mookie.hidden = false;
       void mookie.offsetWidth; // so the drop-in animation starts from the top
@@ -753,6 +819,7 @@
     var jumpV = 0;          // how fast he's going up (px per second)
     var leaping = false;    // flying over the footer cat
     var leapHissed = false;
+    var crossings = 0;      // times he has run clear across the screen since he was called
     var chirpHold = 0;      // seconds left standing still, chirping at a bird
     var GRAVITY = 2400;
     var JUMP_SPEED = 820;   // a hop about 140px high that takes ~0.7 seconds
@@ -811,6 +878,7 @@
       chirpHold = 1.5;
       runner.classList.add('is-watching');
       playSample('chirp', 1);
+      foundEgg('chirp');
       sayWord('chrrp!', 'mew', runX + runWidth / 2, window.innerHeight - runner.offsetHeight - 34);
     };
     // up/down movement: a jump, or a glide over the footer cat's head
@@ -848,6 +916,9 @@
       }
       runX += still ? 0 : runDir * runWidth * 1.5 * dt; // about one and a half cat-lengths per second
       var screenW = window.innerWidth;
+      if ((runDir > 0 && runX > screenW) || (runDir < 0 && runX < -runWidth)) {
+        if (++crossings >= 3) foundEgg('marathon');
+      }
       if (runDir > 0 && runX > screenW) {
         if (heldDir === 1) { runX = -runWidth; } else { stopRunner(); return; }
       } else if (runDir < 0 && runX < -runWidth) {
@@ -866,7 +937,7 @@
     var startRunner = function () {
       running = true;
       metFooterCat = false;
-      jumpY = 0; jumpV = 0; leaping = false; chirpHold = 0;
+      jumpY = 0; jumpV = 0; leaping = false; chirpHold = 0; crossings = 0;
       runner.classList.remove('is-watching');
       runner.style.translate = '';
       runner.classList.remove('is-airborne');
@@ -918,8 +989,8 @@
     window.addEventListener('blur', function () { heldDir = 0; }); // key-up can get lost if you switch windows
   }
 
-  // Fun: a pixel bird flies across the whole page in a gentle swooping wave. Type "bird" to call
-  // him (he also drops by on his own, now and then). If the running cat is out on the ground, he
+  // Fun: a pixel bird flies across the whole page in a gentle swooping wave. Press the B key to
+  // call him (he also drops by on his own, now and then). If the running cat is out on the ground, he
   // stops and chirps at the bird, then runs on. Hold the right arrow to keep him looping round
   // the screen so he's there when the bird arrives.
   var bird = document.getElementById('bird');
@@ -931,6 +1002,7 @@
     if (!bird || birdActive) return;
     birdActive = true;
     birdChirped = false;
+    foundEgg('flyby');
     bird.hidden = false;
     birdW = bird.offsetWidth;
     var screenW = window.innerWidth;
@@ -1007,6 +1079,7 @@
       if (konamiAt === KONAMI.length) {
         konamiAt = 0;
         unlockAudio(); // so Mookie's sound is allowed to play when he arrives
+        foundEgg('konami');
         startParty();
       }
     } else {
