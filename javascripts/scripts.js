@@ -1288,34 +1288,109 @@
     }, 60000 + Math.random() * 90000);
   }
 
-  // Fun: the Konami code (up up down down left right left right B A) throws a party: the colours
-  // flow from palette to palette, it rains cats, the running cat joins in, and then Mookie
-  // arrives to bless everyone. (The colours fade slowly, never flash, and sit still if you have
-  // "reduce motion" turned on.)
+  // Fun: the Konami code (up up down down left right left right B A) sends in Commando Mookie:
+  // a cat in a blue bandana, carrying a big rifle, who runs across the bottom of the screen
+  // firing a five-way spread of glowing pellets, then trots off the far side.
   var KONAMI = ['ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight', 'b', 'a'];
   var konamiAt = 0;
   var konamiTimer = null;
   var partyOn = false;
 
+  var commando = document.getElementById('commando');
+  var COMMANDO_MUZZLES = [[171, 75], [171, 71], [175, 71], [175, 71], [175, 75], [171, 75]];   // where the rifle's end is in each of the 6 running frames
+  var PELLET_URL = null;
+  function pelletUrl() {
+    if (PELLET_URL) return PELLET_URL;
+    var c = document.createElement('canvas');
+    c.width = 5; c.height = 5;
+    var g = c.getContext('2d');
+    var rows = ['.ggg.', 'ggwgg', 'gwwwg', 'ggwgg', '.ggg.'];
+    rows.forEach(function (row, y) {
+      for (var x = 0; x < 5; x++) {
+        if (row[x] === 'w') { g.fillStyle = '#fffbe0'; g.fillRect(x, y, 1, 1); }
+        else if (row[x] === 'g') { g.fillStyle = (x + y) % 2 ? '#5df2c0' : '#2fd6a4'; g.fillRect(x, y, 1, 1); }
+      }
+    });
+    PELLET_URL = c.toDataURL();
+    return PELLET_URL;
+  }
+  // a short synthesized "pew" for each burst of fire
+  function buildPew(ctx, out, t0) {
+    var o = ctx.createOscillator();
+    var gn = ctx.createGain();
+    o.type = 'square';
+    o.frequency.setValueAtTime(1100, t0);
+    o.frequency.exponentialRampToValueAtTime(180, t0 + 0.11);
+    gn.gain.setValueAtTime(0.0001, t0);
+    gn.gain.exponentialRampToValueAtTime(0.5, t0 + 0.005);
+    gn.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.13);
+    o.connect(gn); gn.connect(out);
+    o.start(t0); o.stop(t0 + 0.15);
+    return [o];
+  }
   function startParty() {
-    if (partyOn || (typeof mookieOpen !== 'undefined' && mookieOpen)) return;
+    if (partyOn || !commando || (typeof mookieOpen !== 'undefined' && mookieOpen)) return;
     partyOn = true;
-    catRain();
-    flyBird();
-    if (typeof startRunner === 'function' && !running) { heldDir = 0; startRunner(); }
-    var swaps = 0;
-    var swapTimer = null;
-    if (swapButton && !reduceMotion) {
-      swapTimer = setInterval(function () {
-        swapButton.click();
-        if (++swaps >= 9) clearInterval(swapTimer);
-      }, 650);
-    }
-    setTimeout(function () {
-      clearInterval(swapTimer);
-      partyOn = false;
-      if (typeof openMookie === 'function' && !mookieOpen) openMookie();
-    }, 6200);
+    if (typeof running !== 'undefined' && running) stopRunner();   // only one Mookie at a time
+    var sprite = commando.firstElementChild;
+    commando.hidden = false;
+    var scale = commando.offsetWidth / 192;
+    var cw = commando.offsetWidth;
+    var vw = window.innerWidth;
+    var vh = window.innerHeight;
+    var top = vh - commando.offsetHeight;
+    var duration = 7.5;                                    // seconds to cross the screen
+    var speed = (vw + cw) / duration;
+    var x = -cw;
+    var start = performance.now();
+    var last = start;
+    var nextShot = start + 700;
+    var pellets = [];
+    var pelletSize = Math.max(18, Math.round(scale * 12));
+    var ANGLES = [-44, -22, 0, 22, 44];                   // the fan: two up, one straight, two down
+    var fire = function (frame) {
+      var m = COMMANDO_MUZZLES[frame];
+      var ox = x + m[0] * scale;
+      var oy = top + m[1] * scale;
+      ANGLES.forEach(function (deg) {
+        var rad = deg * Math.PI / 180;
+        var el = document.createElement('div');
+        el.className = 'pellet';
+        el.style.width = el.style.height = pelletSize + 'px';
+        el.style.backgroundImage = 'url(' + pelletUrl() + ')';
+        document.body.appendChild(el);
+        pellets.push({ el: el, x: ox, y: oy, vx: Math.cos(rad) * 980, vy: Math.sin(rad) * 980 });
+      });
+      playCatSound(buildPew, 0.09);
+    };
+    var tick = function (now) {
+      var dt = Math.min(0.05, (now - last) / 1000);
+      last = now;
+      x += speed * dt;
+      var frame = Math.floor((now - start) / 120) % 6;
+      sprite.style.backgroundPositionX = (-frame * 192 * scale) + 'px';
+      commando.style.transform = 'translateX(' + x.toFixed(1) + 'px)';
+      if (now >= nextShot && x > -cw * 0.3 && x < vw - cw * 0.5) { fire(frame); nextShot = now + 430; }
+      for (var i = pellets.length - 1; i >= 0; i--) {
+        var p = pellets[i];
+        p.x += p.vx * dt;
+        p.y += p.vy * dt;
+        if (p.x < -40 || p.x > vw + 40 || p.y < -40 || p.y > vh + 40) {
+          p.el.remove();
+          pellets.splice(i, 1);
+        } else {
+          p.el.style.transform = 'translate(' + (p.x - pelletSize / 2).toFixed(1) + 'px,' + (p.y - pelletSize / 2).toFixed(1) + 'px)';
+        }
+      }
+      if (x > vw && !pellets.length) {
+        commando.hidden = true;
+        partyOn = false;
+        return;
+      }
+      requestAnimationFrame(tick);
+    };
+    commando.style.transform = 'translateX(' + x + 'px)';
+    requestAnimationFrame(tick);
   }
 
   window.addEventListener('keydown', function (e) {
@@ -1327,7 +1402,7 @@
       konamiTimer = setTimeout(function () { konamiAt = 0; }, 4000);
       if (konamiAt === KONAMI.length) {
         konamiAt = 0;
-        unlockAudio(); // so Mookie's sound is allowed to play when he arrives
+        unlockAudio(); // so the sound effects are allowed to play
         foundEgg('konami');
         startParty();
       }

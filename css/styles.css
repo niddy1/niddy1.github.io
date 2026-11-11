@@ -890,3 +890,29 @@ p {
   from { opacity: 1; }
   to   { opacity: 0; }
 }
+
+/* Commando Mookie (the Konami code): the running cat with a bandana and a rifle, plus his pellets */
+.commando {
+  --rs: 1.7;
+  position: fixed;
+  left: 0; bottom: 0;
+  z-index: 21;
+  pointer-events: none;
+  width: calc(192px * var(--rs));
+  height: calc(128px * var(--rs));
+}
+@media (max-width: 700px) { .commando { --rs: 0.85; } }
+.commando-sprite {
+  width: 100%; height: 100%;
+  background: url('images/commando.png') 0 0 / calc(1152px * var(--rs)) calc(128px * var(--rs)) no-repeat;
+  image-rendering: pixelated;
+}
+.pellet {
+  position: fixed;
+  left: 0; top: 0;
+  z-index: 22;
+  pointer-events: none;
+  image-rendering: pixelated;
+  background-size: 100% 100%;
+  filter: drop-shadow(0 0 6px rgba(80, 255, 200, 0.9));
+}
