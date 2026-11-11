@@ -23,9 +23,10 @@
     blessing: 'The Blessing',
     purr: 'Purr Factory',
     laser: 'Fricken Laser Beams',
-    rainbow: 'Taste the Rainbow'
+    rainbow: 'Taste the Rainbow',
+    kraven: 'Kraven the Hunter'
   };
-  var EGG_ORDER = ['konami', 'flyby', 'chirp', 'marathon', 'blessing', 'purr', 'laser', 'rainbow'];
+  var EGG_ORDER = ['konami', 'flyby', 'chirp', 'marathon', 'blessing', 'purr', 'laser', 'rainbow', 'kraven'];
   var eggsFound = {};
   var eggQueue = [];
   var eggBusy = false;
@@ -1247,13 +1248,44 @@
   var birdChirped = false;
   var birdX = -9999;
   var birdW = 0;
+  var birdState = 'idle';   // 'fly', 'stunned' (just been shot), 'fall'
+  var birdY = 0;
+  var birdHit = null;       // set while a bird is in the air: call it when a pellet lands
+  // a harsh two-part "caw"
+  function buildCaw(ctx, out, t0) {
+    var all = [];
+    [0, 0.2].forEach(function (off) {
+      var t = t0 + off;
+      var o = ctx.createOscillator();
+      var o2 = ctx.createOscillator();
+      var bp = ctx.createBiquadFilter();
+      var gn = ctx.createGain();
+      o.type = 'sawtooth'; o2.type = 'square';
+      o.frequency.setValueAtTime(560, t);
+      o.frequency.exponentialRampToValueAtTime(330, t + 0.17);
+      o2.frequency.setValueAtTime(842, t);
+      o2.frequency.exponentialRampToValueAtTime(495, t + 0.17);
+      bp.type = 'bandpass'; bp.frequency.value = 1500; bp.Q.value = 2.5;
+      gn.gain.setValueAtTime(0.0001, t);
+      gn.gain.exponentialRampToValueAtTime(0.7, t + 0.02);
+      gn.gain.exponentialRampToValueAtTime(0.0001, t + 0.19);
+      o.connect(bp); o2.connect(bp); bp.connect(gn); gn.connect(out);
+      o.start(t); o2.start(t); o.stop(t + 0.2); o2.stop(t + 0.2);
+      all.push(o, o2);
+    });
+    return all;
+  }
   function flyBird() {
     if (!bird || birdActive) return;
     birdActive = true;
     birdChirped = false;
+    birdState = 'fly';
     foundEgg('flyby');
     bird.hidden = false;
+    bird.classList.remove('is-hit');
+    bird.style.rotate = '';
     birdW = bird.offsetWidth;
+    var birdH = bird.offsetHeight;
     var screenW = window.innerWidth;
     var screenH = window.innerHeight;
     var dir = Math.random() < 0.5 ? 1 : -1;               // 1 = flying right (the picture faces left)
@@ -1264,19 +1296,59 @@
     var swoop = 45 + Math.random() * 55;                   // how tall the waves are
     var waves = 1.4 + Math.random() * 1.2;                 // how many waves across the screen
     var start = null;
+    var last = null;
+    var stunLeft = 0, vy = 0, drift = 0, spin = 0, ang = 0;
+    var finish = function () {
+      birdActive = false;
+      birdState = 'idle';
+      birdHit = null;
+      birdX = -9999;
+      bird.hidden = true;
+      bird.classList.remove('is-hit');
+      bird.style.rotate = '';
+    };
+    // a bullet got him: he caws, freezes in the air for a moment, then drops
+    birdHit = function () {
+      if (birdState !== 'fly') return false;
+      birdState = 'stunned';
+      stunLeft = 0.5;
+      birdChirped = true;                                  // Mookie's chirp is off the table now
+      bird.classList.add('is-hit');
+      playCatSound(buildCaw, 0.12);
+      if (typeof sayWord === 'function') sayWord('CAW!', 'hiss', birdX + birdW / 2, Math.max(30, birdY - 16));
+      foundEgg('kraven');
+      return true;
+    };
     var frame = function (now) {
-      if (start === null) start = now;
-      var p = (now - start) / 1000 / duration;
-      if (p >= 1) {
-        birdActive = false;
-        birdX = -9999;
-        bird.hidden = true;
-        return;
+      if (start === null) { start = now; last = now; }
+      var dt = Math.min(0.05, (now - last) / 1000);
+      last = now;
+      if (birdState === 'fly') {
+        var p = (now - start) / 1000 / duration;
+        if (p >= 1) { finish(); return; }
+        birdX = dir > 0 ? -birdW + p * travel : screenW - p * travel;
+        // a smooth wave, and he dips a bit lower through the middle of the page
+        birdY = baseY + swoop * Math.sin(p * waves * 2 * Math.PI) + Math.sin(p * Math.PI) * screenH * 0.12;
+        bird.style.translate = birdX.toFixed(1) + 'px ' + birdY.toFixed(1) + 'px';
+      } else if (birdState === 'stunned') {
+        stunLeft -= dt;
+        var jx = (Math.random() - 0.5) * 8;                // a little shudder
+        bird.style.translate = (birdX + jx).toFixed(1) + 'px ' + birdY.toFixed(1) + 'px';
+        if (stunLeft <= 0) {
+          birdState = 'fall';
+          vy = -140;
+          drift = dir * 50;
+          spin = (Math.random() < 0.5 ? -1 : 1) * (160 + Math.random() * 200);
+        }
+      } else {
+        vy += 1900 * dt;
+        birdY += vy * dt;
+        birdX += drift * dt;
+        ang += spin * dt;
+        bird.style.rotate = ang.toFixed(0) + 'deg';
+        bird.style.translate = birdX.toFixed(1) + 'px ' + birdY.toFixed(1) + 'px';
+        if (birdY > screenH + birdH) { finish(); return; }
       }
-      birdX = dir > 0 ? -birdW + p * travel : screenW - p * travel;
-      // a smooth wave, and he dips a bit lower through the middle of the page
-      var y = baseY + swoop * Math.sin(p * waves * 2 * Math.PI) + Math.sin(p * Math.PI) * screenH * 0.12;
-      bird.style.transform = 'translate(' + birdX.toFixed(1) + 'px,' + y.toFixed(1) + 'px)';
       requestAnimationFrame(frame);
     };
     requestAnimationFrame(frame);
@@ -1375,6 +1447,9 @@
         var p = pellets[i];
         p.x += p.vx * dt;
         p.y += p.vy * dt;
+        if (birdState === 'fly' && birdHit && p.x > birdX - 6 && p.x < birdX + birdW + 6 && p.y > birdY - 6 && p.y < birdY + bird.offsetHeight + 6) {
+          if (birdHit()) { p.el.remove(); pellets.splice(i, 1); continue; }
+        }
         if (p.x < -40 || p.x > vw + 40 || p.y < -40 || p.y > vh + 40) {
           p.el.remove();
           pellets.splice(i, 1);
