@@ -75,6 +75,18 @@
   function foundEgg(id) {
     if (!EGGS[id] || eggsFound[id]) return;
     eggsFound[id] = true;
+    // Google Analytics: one event each time a visitor finds an easter egg. "eggs_found" is how many
+    // they have crossed off so far this visit, so the biggest value per session is their total.
+    try {
+      if (typeof window.gtag === 'function') {
+        window.gtag('event', 'easter_egg_found', {
+          egg_id: id,
+          egg_name: EGGS[id],
+          eggs_found: Object.keys(eggsFound).length,
+          eggs_total: EGG_ORDER.length
+        });
+      }
+    } catch (err) {}
     if (!eggPad) buildEggPad();
     eggQueue.push(id);
     runEggQueue();
@@ -132,16 +144,27 @@
   }
 
   // 3. Desktop: hover (or keyboard focus) a link to slide its description in
+  // Only one panel is ever open. Keyboard focus opens it, but a link you merely clicked with the
+  // mouse (which opens a new tab and keeps focus here) must not, or the panel would come back and
+  // get stuck when you return to the page.
+  var allPanels = document.querySelectorAll('.description');
+  function closeAllPanels() {
+    Array.prototype.forEach.call(allPanels, function (p) { p.classList.remove('is-open'); });
+  }
   Array.prototype.forEach.call(loop.querySelectorAll('[data-desc]'), function (link) {
     var panel = document.getElementById('desc-' + link.getAttribute('data-desc'));
     if (!panel) return;
-    function open()  { panel.classList.add('is-open'); }
+    function open()  { closeAllPanels(); panel.classList.add('is-open'); }
     function close() { panel.classList.remove('is-open'); }
+    function keyboardFocused() {
+      try { return link.matches(':focus-visible'); } catch (err) { return true; }
+    }
     link.addEventListener('mouseenter', open);
     link.addEventListener('mouseleave', close);
-    link.addEventListener('focus', open);
+    link.addEventListener('focus', function () { if (keyboardFocused()) open(); });
     link.addEventListener('blur', close);
   });
+  document.addEventListener('visibilitychange', closeAllPanels);
 
   // Colour swap: every click makes a new random 5-colour palette (a bit like pressing
   // the spacebar on coolors.co, but generated right here, no outside service).
