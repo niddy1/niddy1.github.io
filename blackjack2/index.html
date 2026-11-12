@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Blackjack 2: the one that works</title>
+  <meta name="description" content="A properly polished blackjack: real shoe, double, split, insurance, surrender, card counting trainer, and a basic-strategy coach. A (very) friendly sequel to Ian's 2015 original.">
+  <meta name="theme-color" content="#063a18">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='46' fill='%23c0392b' stroke='%23fff' stroke-width='8' stroke-dasharray='14 10'/%3E%3Ctext x='50' y='64' font-size='42' text-anchor='middle' fill='%23fff' font-family='Georgia'%3E2%3C/text%3E%3C/svg%3E">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+<div class="app" id="app">
+
+  <aside class="notes-col left" id="notes-left" aria-label="Notes from Claude"></aside>
+
+  <div class="game">
+    <header class="topbar">
+      <a class="relic" href="/blackjack/">&larr; the relic (Ian's original)</a>
+      <h1>Blackjack <span class="two">2</span><small>the one that works</small></h1>
+      <div class="tools">
+        <button class="tool" id="btn-notes" title="Show the notes" aria-label="Show the notes">&#128204;</button>
+        <button class="tool" id="btn-report" title="The Roast Report" aria-label="The Roast Report">&#127865;</button>
+        <button class="tool" id="btn-stats" title="Stats" aria-label="Stats">&#128202;</button>
+        <button class="tool" id="btn-settings" title="Settings" aria-label="Settings">&#9881;&#65039;</button>
+        <button class="tool" id="btn-sound" title="Sound" aria-label="Toggle sound">&#128266;</button>
+      </div>
+    </header>
+
+    <main class="table" id="table">
+      <svg class="arcs" viewBox="0 0 1000 300" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+        <defs><path id="arc1" d="M 120 250 Q 500 40 880 250"/><path id="arc2" d="M 170 285 Q 500 120 830 285"/></defs>
+        <text><textPath href="#arc1" startOffset="50%" text-anchor="middle">BLACKJACK PAYS 3 TO 2</textPath></text>
+        <text class="small"><textPath href="#arc2" startOffset="50%" text-anchor="middle">DEALER STANDS ON ALL 17s &middot; INSURANCE PAYS 2 TO 1</textPath></text>
+      </svg>
+
+      <section class="dealer-zone">
+        <div class="avatar"><img src="images/koala.webp" alt="" width="64" height="64"><span class="nameplate">Dealer</span></div>
+        <div class="hand-box dealer-box">
+          <div class="cards" id="dealer-cards"></div>
+          <div class="value-chip" id="dealer-value" hidden></div>
+        </div>
+        <div class="shoe" id="shoe" aria-hidden="true"><i></i><i></i><i></i><i></i><b id="shoe-count"></b></div>
+      </section>
+
+      <div class="status" id="status" role="status" aria-live="polite">Place your bet.</div>
+
+      <section class="player-zone">
+        <div class="hands" id="hands"></div>
+        <div class="avatar me"><img src="images/margay.webp" alt="" width="64" height="64"><span class="nameplate">Player</span></div>
+      </section>
+    </main>
+
+    <footer class="controls">
+      <div class="bankbar">
+        <div class="bank"><span>Bankroll</span><b id="bankroll">$1,000</b></div>
+        <div class="count" id="count" hidden><span>Hi-Lo</span><b id="count-rc">0</b><small id="count-tc">TC 0.0</small></div>
+        <div class="bank bet"><span>Bet</span><b id="bet-total">$0</b></div>
+      </div>
+
+      <div class="actions" id="actions" aria-label="Your move">
+        <button class="chip c-hit" data-act="hit"><span>Hit</span><kbd>H</kbd></button>
+        <button class="chip c-stand" data-act="stand"><span>Stand</span><kbd>S</kbd></button>
+        <button class="chip c-double" data-act="double"><span>Double</span><kbd>D</kbd></button>
+        <button class="chip c-split" data-act="split"><span>Split</span><kbd>P</kbd></button>
+        <button class="chip c-sur" data-act="surrender"><span>Give up</span><kbd>R</kbd></button>
+        <button class="chip c-hint" data-act="hint" title="What would basic strategy do?"><span>?</span><kbd>/</kbd></button>
+      </div>
+
+      <div class="bettray" id="bettray" aria-label="Betting chips">
+        <button class="chip d5" data-bet="5"><span>5</span></button>
+        <button class="chip d25" data-bet="25"><span>25</span></button>
+        <button class="chip d100" data-bet="100"><span>100</span></button>
+        <button class="chip d500" data-bet="500"><span>500</span></button>
+        <div class="bet-spot" id="bet-spot" aria-hidden="true"></div>
+        <button class="pill" id="btn-clear">Clear</button>
+        <button class="chip c-deal" id="btn-deal"><span>Deal</span><kbd>Space</kbd></button>
+      </div>
+    </footer>
+  </div>
+
+  <aside class="notes-col right" id="notes-right" aria-label="More notes from Claude"></aside>
+</div>
+
+<div class="toasts" id="toasts" aria-live="polite"></div>
+<div class="modal-root" id="modal-root"></div>
+<canvas id="confetti" aria-hidden="true"></canvas>
+<div class="pina" id="pina" title="Sips taken while you play" aria-hidden="true"><span id="pina-glass">&#127865;</span><b id="pina-n">0</b></div>
+
+<script src="js/engine.js"></script>
+<script src="js/roasts.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
